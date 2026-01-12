@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Truck, Shield, Headphones, Building } from 'lucide-react';
+import { ArrowRight, Star, Truck, Shield, Headphones, Building, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { productService } from '../services/api';
 
-// Define the Product interface to ensure type safety
+// Define the Product interface
 interface Product {
   id: string;
   name: string;
@@ -20,7 +21,9 @@ interface Product {
 const Home: React.FC = () => {
   const { t } = useLanguage();
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Array of images for the hero section slideshow
   const heroImages = [
@@ -33,97 +36,45 @@ const Home: React.FC = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 5000); // Change image every 5 seconds
+    }, 5000); 
     return () => clearInterval(timer);
   }, [heroImages.length]);
 
-
-  // Mock data for featured products
-  const featuredProducts = [
-    {
-      id: '1',
-      name: 'Royal Silk Saree',
-      price: 2999,
-      image: '/images/pro-1.png',
-      rating: 4.8,
-      reviews: 124,
-      category: 'silk',
-      fabric: 'Pure Silk',
-    },
-    {
-      id: '2',
-      name: 'Designer Cotton Saree',
-      price: 1899,
-      image: '/images/pro-2.png',
-      rating: 4.6,
-      reviews: 89,
-      category: 'cotton',
-      fabric: 'Cotton',
-    },
-    {
-      id: '3',
-      name: 'Banarasi Silk Saree',
-      price: 4999,
-      image: '/images/pro-3.png',
-      rating: 4.9,
-      reviews: 156,
-      category: 'silk',
-      fabric: 'Banarasi Silk',
-    }
-  ];
-  
-  // In a real application, you would fetch this data from your API.
-  // For now, we are using mock data to populate the "New Arrivals" section.
+  // Fetch Real Data from Supabase
   useEffect(() => {
-    const allProducts: Product[] = [
-      {
-        id: '4',
-        name: 'Bridal Designer Saree',
-        price: 8999,
-        originalPrice: 12999,
-        image: '/images/pro-4.png',
-        category: 'bridal',
-        fabric: 'Silk',
-        rating: 4.7,
-        reviews: 67,
-        isNew: true
-      },
-      {
-        id: '5',
-        name: 'Printed Cotton Saree',
-        price: 1299,
-        image: '/images/pro-5.png',
-        category: 'cotton',
-        fabric: 'Cotton',
-        rating: 4.4,
-        reviews: 203,
-        isNew: true
-      },
-      {
-        id: '6',
-        name: 'Designer Georgette Saree',
-        price: 3499,
-        image: '/images/pro-6.png',
-        category: 'designer',
-        fabric: 'Georgette',
-        rating: 4.5,
-        reviews: 98,
-        isNew: true
-      },
-      {
-        id: '1',
-        name: 'Royal Silk Saree',
-        price: 2999,
-        originalPrice: 3999,
-        image: '/images/pro-7.png',
-        category: 'silk',
-        fabric: 'Silk',
-        rating: 4.8,
-        reviews: 124,
-        isNew: true
-      },
-    ];
-    setNewArrivals(allProducts);
+    const fetchHomeData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await productService.getAll();
+
+        // Transform Supabase data to match Product interface
+        // We set default ratings/reviews since they aren't in the DB yet
+        const formattedProducts: Product[] = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          price: Number(item.price),
+          image: item.image,
+          category: item.category,
+          fabric: item.fabric,
+          rating: 4.8, 
+          reviews: Math.floor(Math.random() * 200) + 50, // Random reviews for display
+          isNew: true,
+          originalPrice: undefined // Add logic here if you store original price
+        }));
+
+        // Use the first 3 items for Featured and first 4 for New Arrivals
+        // In a real app, you might have specific 'featured' flags in your DB
+        setFeaturedProducts(formattedProducts.slice(0, 3));
+        setNewArrivals(formattedProducts.slice(0, 4));
+
+      } catch (error) {
+        console.error("Failed to fetch home products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHomeData();
   }, []);
 
   const categories = [
@@ -148,6 +99,14 @@ const Home: React.FC = () => {
       link: '/products?category=bridal'
     }
   ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-10 w-10 animate-spin text-orange-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -182,45 +141,32 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Elegant Marquee Section */}
-<section className="bg-white py-3 border-b border-gray-200 overflow-hidden">
-  <div className="flex animate-marquee whitespace-nowrap">
-    {/* -- We repeat the items to create a seamless loop -- */}
-
-    <span className="text-gray-700 text-sm mx-6">✨ Free Shipping on Orders Above ₹2000</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">🎉 New Collection: Banarasi Silk Sarees</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">💎 Premium Quality Guaranteed</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">🚚 Express Delivery Available</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">⭐ Rated 4.8/5 by 10,000+ Customers</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">🎁 Special Festive Offers</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    {/* -- Duplicate the set of items for the marquee effect -- */}
-
-    <span className="text-gray-700 text-sm mx-6">✨ Free Shipping on Orders Above ₹2000</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">🎉 New Collection: Banarasi Silk Sarees</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">💎 Premium Quality Guaranteed</span>
-    <span className="text-gray-300 mx-6">❖</span>
-
-    <span className="text-gray-700 text-sm mx-6">🚚 Express Delivery Available</span>
-    
-  </div>
-</section>
-
+      {/* Marquee Section */}
+      <section className="bg-white py-3 border-b border-gray-200 overflow-hidden">
+        <div className="flex animate-marquee whitespace-nowrap">
+          <span className="text-gray-700 text-sm mx-6">✨ Free Shipping on Orders Above ₹2000</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">🎉 New Collection: Banarasi Silk Sarees</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">💎 Premium Quality Guaranteed</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">🚚 Express Delivery Available</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">⭐ Rated 4.8/5 by 10,000+ Customers</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">🎁 Special Festive Offers</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          
+          {/* Duplicate for loop effect */}
+          <span className="text-gray-700 text-sm mx-6">✨ Free Shipping on Orders Above ₹2000</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">🎉 New Collection: Banarasi Silk Sarees</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">💎 Premium Quality Guaranteed</span>
+          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-700 text-sm mx-6">🚚 Express Delivery Available</span>
+        </div>
+      </section>
 
       {/* Categories Section */}
       <section className="py-16 bg-white">
@@ -259,49 +205,54 @@ const Home: React.FC = () => {
             <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Featured Collection</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">Handpicked masterpieces crafted by skilled artisans, each saree a testament to timeless beauty</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                className="group bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
-              >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
-                    <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">{product.name}</h3>
-                  <div className="flex items-center mb-3">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(product.rating)
-                              ? 'text-yellow-500 fill-current'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
+          
+          {featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredProducts.map((product) => (
+                <Link
+                  key={product.id}
+                  to={`/product/${product.id}`}
+                  className="group bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+                >
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
+                      <Star className="h-5 w-5 text-yellow-500 fill-current" />
                     </div>
-                    <span className="ml-2 text-sm text-gray-500 font-medium">({product.reviews})</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
-                    <ArrowRight className="h-6 w-6 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all duration-300" />
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors truncate">{product.name}</h3>
+                    <div className="flex items-center mb-3">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < Math.floor(product.rating)
+                                ? 'text-yellow-500 fill-current'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="ml-2 text-sm text-gray-500 font-medium">({product.reviews})</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
+                      <ArrowRight className="h-6 w-6 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">No featured products available.</div>
+          )}
         </div>
       </section>
 
@@ -312,37 +263,43 @@ const Home: React.FC = () => {
             <h2 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">New Arrivals</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">Fresh from our artisan partners - the latest additions to our curated collection</p>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-            {newArrivals.map((product) => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                className="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:-translate-y-3 transition-all duration-500 hover:shadow-2xl"
-              >
-                <div className="relative overflow-hidden aspect-[3/4]">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  {product.isNew && (
-                    <span className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">NEW</span>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <div className="p-5 text-center">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 truncate group-hover:text-orange-600 transition-colors">{product.name}</h3>
-                  <p className="text-sm text-gray-600 mb-3 font-medium">{product.fabric}</p>
-                  <div className="flex items-center justify-center space-x-2">
-                     <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
-                     {product.originalPrice && (
-                        <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
-                     )}
+          
+          {newArrivals.length > 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+              {newArrivals.map((product) => (
+                <Link
+                  key={product.id}
+                  to={`/product/${product.id}`}
+                  className="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:-translate-y-3 transition-all duration-500 hover:shadow-2xl"
+                >
+                  <div className="relative overflow-hidden aspect-[3/4]">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    {product.isNew && (
+                      <span className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">NEW</span>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className="p-5 text-center">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 truncate group-hover:text-orange-600 transition-colors">{product.name}</h3>
+                    <p className="text-sm text-gray-600 mb-3 font-medium">{product.fabric}</p>
+                    <div className="flex items-center justify-center space-x-2">
+                      <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
+                      {product.originalPrice && (
+                          <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">No new arrivals found.</div>
+          )}
+
           <div className="mt-12 text-center">
             <Link
               to="/products"

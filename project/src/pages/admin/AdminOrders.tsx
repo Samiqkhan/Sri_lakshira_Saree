@@ -1,71 +1,98 @@
-import React, { useState } from 'react';
-import { Eye, Download, Search, Package, CheckCircle, Clock, Truck, ShoppingCart, Archive } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, Download, Search, Package, CheckCircle, Clock, Truck, ShoppingCart, Archive, Loader2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { orderService } from '../../services/api';
 
-// Define the structure of an order
+// Defined based on your Supabase Table
 interface Order {
   id: string;
+  fullId: string;
   customer: {
     name: string;
     email: string;
   };
-  product: string;
+  product: string; // Derived from items
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus: 'paid';
   createdAt: string;
 }
 
-// Main component for the admin orders page
 const AdminOrders: React.FC = () => {
-  // State for managing all orders
-  const [orders, setOrders] = useState<Order[]>([
-    { id: 'ORD001', customer: { name: 'Priya Sharma', email: 'priya.sharma@email.com' }, product: 'Royal Silk Saree', total: 3539, status: 'processing', paymentStatus: 'paid', createdAt: '2024-07-15' },
-    { id: 'ORD002', customer: { name: 'Anita Gupta', email: 'anita.gupta@email.com' }, product: 'Designer Cotton Saree', total: 4478, status: 'shipped', paymentStatus: 'paid', createdAt: '2024-07-14' },
-    { id: 'ORD003', customer: { name: 'Meera Patel', email: 'meera.patel@email.com' }, product: 'Banarasi Silk Saree', total: 5899, status: 'delivered', paymentStatus: 'paid', createdAt: '2024-07-13' },
-    { id: 'ORD004', customer: { name: 'Kavya Reddy', email: 'kavya.reddy@email.com' }, product: 'Bridal Designer Saree', total: 10619, status: 'pending', paymentStatus: 'paid', createdAt: '2024-07-12' },
-    { id: 'ORD005', customer: { name: 'Sunita Singh', email: 'sunita.singh@email.com' }, product: 'Kanjeevaram Saree', total: 8850, status: 'delivered', paymentStatus: 'paid', createdAt: '2024-07-11' },
-    { id: 'ORD006', customer: { name: 'Rohan Verma', email: 'rohan.verma@email.com' }, product: 'Cotton Kurta', total: 1500, status: 'cancelled', paymentStatus: 'paid', createdAt: '2024-07-10' },
-  ]);
-
-  // State for search term, status filter, and the active view (current vs. delivered)
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [activeView, setActiveView] = useState<'current' | 'delivered'>('current');
 
-  // Filter orders based on the active view (current or delivered)
-  const viewFilteredOrders = orders.filter(order => {
-    if (activeView === 'delivered') {
-      return order.status === 'delivered';
+  // Fetch Orders from Supabase
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      const data = await orderService.getAll();
+      
+      // Transform Supabase Data to Component Interface
+      const formattedOrders: Order[] = data.map((order: any) => {
+        // Create a summary string for products (e.g., "Saree X, Saree Y")
+        const productNames = order.items.map((item: any) => item.name);
+        const productSummary = productNames.length > 1 
+          ? `${productNames[0]} + ${productNames.length - 1} more` 
+          : productNames[0];
+
+        return {
+          id: order.id.slice(0, 8).toUpperCase(), // Shorten UUID for display
+          fullId: order.id, // Keep full ID for updates
+          customer: { name: order.customer_name, email: order.email },
+          product: productSummary || 'Unknown Product',
+          total: order.total_amount,
+          status: order.status,
+          paymentStatus: order.payment_status,
+          createdAt: new Date(order.created_at).toLocaleDateString()
+        };
+      });
+
+      setOrders(formattedOrders);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to load orders');
+    } finally {
+      setIsLoading(false);
     }
-    // 'current' view shows all orders that are not delivered
+  };
+
+  const handleStatusChange = async (fullId: string, newStatus: string) => {
+    try {
+      // Optimistic Update
+      setOrders(prev => prev.map(o => o.fullId === fullId ? { ...o, status: newStatus as any } : o));
+      
+      // API Call
+      await orderService.updateStatus(fullId, newStatus);
+      toast.success(`Order status updated to ${newStatus}`);
+    } catch (error) {
+      toast.error('Failed to update status');
+      fetchOrders(); // Revert on error
+    }
+  };
+
+  // Filter Logic (Same as before)
+  const viewFilteredOrders = orders.filter(order => {
+    if (activeView === 'delivered') return order.status === 'delivered';
     return order.status !== 'delivered';
   });
 
-  // Further filter the orders based on search term and status dropdown
   const filteredOrders = viewFilteredOrders.filter(order => {
     const lowerCaseSearch = searchTerm.toLowerCase();
     const matchesSearch = order.id.toLowerCase().includes(lowerCaseSearch) ||
                           order.customer.name.toLowerCase().includes(lowerCaseSearch) ||
                           order.customer.email.toLowerCase().includes(lowerCaseSearch);
-    
-    // Status filter is only applied in the 'current' view
     const matchesStatus = activeView === 'delivered' || statusFilter === 'all' || order.status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   });
 
-  // Handle changing the status of an order
-  const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
-    toast.success(`Order ${orderId} status updated to ${newStatus}`);
-  };
-
-  // Get a color scheme for the status badge
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -77,100 +104,68 @@ const AdminOrders: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-600 h-10 w-10" /></div>;
+  }
+
   return (
     <div className="space-y-6 p-4 md:p-8 bg-gray-50 min-h-screen">
-      <Toaster position="top-right" reverseOrder={false} />
-      {/* Header Section */}
+      <Toaster position="top-right" />
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-6 rounded-lg shadow-md">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">Orders Management</h1>
-          <p className="text-gray-600 mt-2">Track and manage customer orders efficiently.</p>
+          <p className="text-gray-600 mt-2">Track and manage customer orders.</p>
         </div>
-        <button className="mt-4 sm:mt-0 bg-gradient-to-r from-orange-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-orange-700 hover:to-pink-700 transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl">
-          <Download className="h-4 w-4" />
-          <span>Export Orders</span>
-        </button>
+        <button onClick={fetchOrders} className="mt-4 sm:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm">Refresh List</button>
       </div>
 
-      {/* Stats Cards Section */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Pending Orders</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{orders.filter(o => o.status === 'pending').length}</p>
-            </div>
+            <div><p className="text-sm text-gray-600 font-medium">Pending Orders</p><p className="text-3xl font-bold text-gray-900 mt-2">{orders.filter(o => o.status === 'pending').length}</p></div>
             <Clock className="h-12 w-12 text-yellow-500" />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">In Process</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{orders.filter(o => o.status === 'processing').length}</p>
-            </div>
+            <div><p className="text-sm text-gray-600 font-medium">In Process</p><p className="text-3xl font-bold text-gray-900 mt-2">{orders.filter(o => o.status === 'processing').length}</p></div>
             <Package className="h-12 w-12 text-blue-500" />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Shipped Orders</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{orders.filter(o => o.status === 'shipped').length}</p>
-            </div>
+            <div><p className="text-sm text-gray-600 font-medium">Shipped Orders</p><p className="text-3xl font-bold text-gray-900 mt-2">{orders.filter(o => o.status === 'shipped').length}</p></div>
             <Truck className="h-12 w-12 text-purple-500" />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Total Revenue</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">₹{orders.filter(o=>o.status === 'delivered').reduce((sum, order) => sum + order.total, 0).toLocaleString()}</p>
-            </div>
+            <div><p className="text-sm text-gray-600 font-medium">Total Revenue</p><p className="text-3xl font-bold text-green-600 mt-2">₹{orders.filter(o=>o.status === 'delivered').reduce((sum, order) => sum + order.total, 0).toLocaleString()}</p></div>
             <CheckCircle className="h-12 w-12 text-green-500" />
           </div>
         </div>
       </div>
 
-      {/* View Tabs and Filters Section */}
+      {/* Tabs and Filters */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        {/* Tabs to switch between Current and Delivered orders */}
         <div className="flex border-b border-gray-200 mb-6">
-          <button
-            onClick={() => setActiveView('current')}
-            className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold transition-colors duration-200 ${activeView === 'current' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500 hover:text-orange-500'}`}
-          >
-            <ShoppingCart className="h-5 w-5" />
-            <span>Current Orders</span>
+          <button onClick={() => setActiveView('current')} className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold ${activeView === 'current' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500'}`}>
+            <ShoppingCart className="h-5 w-5" /><span>Current Orders</span>
           </button>
-          <button
-            onClick={() => setActiveView('delivered')}
-            className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold transition-colors duration-200 ${activeView === 'delivered' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500 hover:text-orange-500'}`}
-          >
-            <Archive className="h-5 w-5" />
-            <span>Delivered Orders</span>
+          <button onClick={() => setActiveView('delivered')} className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold ${activeView === 'delivered' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500'}`}>
+            <Archive className="h-5 w-5" /><span>Delivered Orders</span>
           </button>
         </div>
         
-        {/* Search and Filter controls */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative md:col-span-2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              placeholder={`Search in ${activeView} orders...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input type="text" placeholder={`Search...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3" />
           </div>
-          {/* Status filter is only shown for the 'current' orders view */}
           {activeView === 'current' && (
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
-            >
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-3">
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
               <option value="processing">Processing</option>
@@ -181,45 +176,32 @@ const AdminOrders: React.FC = () => {
         </div>
       </div>
 
-      {/* Orders Table Section */}
+      {/* Table */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Product</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Total</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Order ID</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Customer</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Product</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Total</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Date</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredOrders.length > 0 ? filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-orange-50 transition-colors duration-200">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full">{order.id}</span>
-                  </td>
+              {filteredOrders.length > 0 ? filteredOrders.map((order: any) => (
+                <tr key={order.fullId} className="hover:bg-orange-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full">{order.id}</span></td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-bold text-gray-900">{order.customer.name}</div>
-                      <div className="text-sm text-gray-500">{order.customer.email}</div>
-                    </div>
+                    <div><div className="text-sm font-bold text-gray-900">{order.customer.name}</div><div className="text-sm text-gray-500">{order.customer.email}</div></div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-900">{order.product}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-lg font-bold text-green-600">₹{order.total.toLocaleString()}</span>
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-900 truncate block max-w-xs" title={order.product}>{order.product}</span></td>
+                  <td className="px-6 py-4 whitespace-nowrap"><span className="text-lg font-bold text-green-600">₹{order.total.toLocaleString()}</span></td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {activeView === 'current' ? (
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
-                        className={`w-full text-xs font-bold rounded-full capitalize border-2 p-2 appearance-none text-center focus:outline-none focus:ring-2 focus:ring-orange-500 ${getStatusColor(order.status)}`}
-                      >
+                      <select value={order.status} onChange={(e) => handleStatusChange(order.fullId, e.target.value)} className={`w-full text-xs font-bold rounded-full capitalize border-2 p-2 text-center focus:outline-none focus:ring-2 ${getStatusColor(order.status)}`}>
                         <option value="pending">Pending</option>
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
@@ -227,23 +209,13 @@ const AdminOrders: React.FC = () => {
                         <option value="cancelled">Cancelled</option>
                       </select>
                     ) : (
-                      <span className={`text-xs font-bold rounded-full capitalize px-3 py-2 ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
+                      <span className={`text-xs font-bold rounded-full capitalize px-3 py-2 ${getStatusColor(order.status)}`}>{order.status}</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600">{order.createdAt}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{order.createdAt}</td>
                 </tr>
               )) : (
-                <tr>
-                    <td colSpan={6} className="text-center py-12">
-                        <div className="flex flex-col items-center justify-center text-gray-500">
-                            <Archive className="w-16 h-16 mb-4 text-gray-300" />
-                            <h3 className="text-xl font-semibold">No Orders Found</h3>
-                            <p className="mt-1">There are no orders matching your current filters.</p>
-                        </div>
-                    </td>
-                </tr>
+                <tr><td colSpan={6} className="text-center py-12 text-gray-500">No Orders Found</td></tr>
               )}
             </tbody>
           </table>

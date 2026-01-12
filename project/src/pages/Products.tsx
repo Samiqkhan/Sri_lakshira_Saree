@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Filter, Grid3X3, List, Star, Heart, ChevronDown, X } from 'lucide-react';
+import { Filter, Star, Heart, ChevronDown, X, Loader2 } from 'lucide-react';
+import { productService } from '../services/api'; // Import your API service
 
 interface Product {
   id: string;
@@ -42,6 +43,7 @@ const Products: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   const [isGridView, setIsGridView] = useState(true);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -51,37 +53,56 @@ const Products: React.FC = () => {
     sortBy: 'name'
   });
 
-  // Mock product data
+  // FETCH REAL DATA FROM SUPABASE
   useEffect(() => {
-    const mockProducts: Product[] = [
-      { id: '1', name: 'Royal Silk Saree', price: 2999, originalPrice: 3999, image: '/images/pro-1.png', category: 'silk', fabric: 'Silk', rating: 4.8, reviews: 124, isNew: true },
-      { id: '2', name: 'Designer Cotton Saree', price: 1899, image: '/images/pro-2.png', category: 'cotton', fabric: 'Cotton', rating: 4.6, reviews: 89 },
-      { id: '3', name: 'Banarasi Silk Saree', price: 4999, image: '/images/pro-3.png', category: 'Kancheepuram Silk', fabric: 'Banarasi Silk', rating: 4.9, reviews: 156, isFavorite: true },
-      { id: '4', name: 'Bridal Designer Saree', price: 8999, originalPrice: 12999, image: '/images/pro-4.png', category: 'ready-wear', fabric: 'Silk', rating: 4.7, reviews: 67, isNew: true },
-      { id: '5', name: 'Printed Cotton Saree', price: 1299, image: '/images/pro-5.png', category: 'cotton', fabric: 'Cotton', rating: 4.4, reviews: 203 },
-      { id: '6', name: 'Designer Georgette Saree', price: 3499, image: '/images/pro-6.png', category: 'Kancheepuram Silk', fabric: 'Georgette', rating: 4.5, reviews: 98 }
-    ];
-    setProducts(mockProducts);
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const data = await productService.getAll();
+        
+        // Transform Supabase data to match Product interface
+        // We add default ratings because the DB doesn't have them yet
+        const formattedProducts: Product[] = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          price: Number(item.price),
+          image: item.image, // URL from Supabase
+          category: item.category,
+          fabric: item.fabric,
+          rating: 4.5, // Default rating
+          reviews: 0,  // Default reviews
+          isNew: item.stock > 0,
+        }));
+
+        setProducts(formattedProducts);
+        setFilteredProducts(formattedProducts);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  // Filter products based on selected filters
+  // Filter products logic
   useEffect(() => {
     let filtered = [...products];
     if (filters.category) {
-      filtered = filtered.filter(product => product.category === filters.category);
+      filtered = filtered.filter(product => product.category.toLowerCase() === filters.category.toLowerCase());
     }
     if (filters.priceRange) {
       const [min, max] = filters.priceRange.split('-').map(Number);
       filtered = filtered.filter(product => product.price >= min && (!max || product.price <= max));
     }
     if (filters.fabric) {
-      filtered = filtered.filter(product => product.fabric === filters.fabric);
+      filtered = filtered.filter(product => product.fabric.toLowerCase().includes(filters.fabric.toLowerCase()));
     }
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'price-low': return a.price - b.price;
         case 'price-high': return b.price - a.price;
-        case 'rating': return b.rating - a.rating;
         default: return a.name.localeCompare(b.name);
       }
     });
@@ -95,7 +116,7 @@ const Products: React.FC = () => {
   const FilterContent = () => (
     <>
       <FilterSection title="Category">
-        {['', 'silk', 'cotton', 'Kancheepuram Silk', 'ready-wear'].map((category) => (
+        {['', 'silk', 'cotton', 'designer', 'bridal'].map((category) => (
           <label key={category} className="flex items-center">
             <input type="radio" name="category" value={category} checked={filters.category === category} onChange={(e) => handleFilterChange('category', e.target.value)} className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300" />
             <span className="ml-2 text-sm text-gray-700 capitalize">{category || 'All Categories'}</span>
@@ -111,7 +132,7 @@ const Products: React.FC = () => {
         ))}
       </FilterSection>
       <FilterSection title="Fabric">
-        {['', 'Silk', 'Cotton', 'Georgette', 'Banarasi Silk'].map((fabric) => (
+        {['', 'Silk', 'Cotton', 'Georgette', 'Banarasi'].map((fabric) => (
           <label key={fabric} className="flex items-center">
             <input type="radio" name="fabric" value={fabric} checked={filters.fabric === fabric} onChange={(e) => handleFilterChange('fabric', e.target.value)} className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300" />
             <span className="ml-2 text-sm text-gray-700">{fabric || 'All Fabrics'}</span>
@@ -120,6 +141,14 @@ const Products: React.FC = () => {
       </FilterSection>
     </>
   );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-orange-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -142,7 +171,6 @@ const Products: React.FC = () => {
               <option value="name">Sort by Name</option>
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
             </select>
           </div>
 
@@ -159,7 +187,6 @@ const Products: React.FC = () => {
                 <option value="name">Name</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
               </select>
             </div>
           </aside>
@@ -183,7 +210,9 @@ const Products: React.FC = () => {
               {filteredProducts.map((product) => (
                 <Link key={product.id} to={`/product/${product.id}`} className={`group bg-white rounded-lg shadow hover:shadow-lg transition-all duration-300 overflow-hidden ${!isGridView ? 'flex' : ''}`}>
                   <div className={`relative overflow-hidden ${isGridView ? 'aspect-[3/4]' : 'w-48 h-auto'}`}>
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    {/* HERE IS WHERE THE IMAGE FROM SUPABASE IS RENDERED */}
+                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 bg-gray-100" />
+                    
                     {product.isNew && (<span className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">NEW</span>)}
                     <button className="absolute top-2 right-2 p-1 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">
                       <Heart className={`h-4 w-4 ${product.isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
@@ -196,15 +225,18 @@ const Products: React.FC = () => {
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (<Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />))}
                       </div>
-                      <span className="ml-2 text-xs text-gray-600">({product.reviews})</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-lg font-bold text-orange-600">₹{product.price.toLocaleString()}</span>
-                      {product.originalPrice && (<span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>)}
                     </div>
                   </div>
                 </Link>
               ))}
+              {filteredProducts.length === 0 && (
+                 <div className="col-span-full text-center py-10">
+                    <p className="text-gray-500">No products found. Try changing the filters.</p>
+                 </div>
+              )}
             </div>
           </div>
         </div>
