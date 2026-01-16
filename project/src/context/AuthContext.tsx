@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Mock admin login (admin@sareestyle.com / admin123)
-      if (email === 'admin@sareestyle.com' && password === 'admin123') {
+      if (email === 'admin@srilakshira.com' && password === 'admin123') {
         const user: User = {
           id: 'admin-1',
           name: 'Admin User',
