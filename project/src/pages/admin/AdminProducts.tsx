@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Eye, X, UploadCloud, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, Eye, X, UploadCloud, Star, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productService } from '../../services/api'; 
 
@@ -14,6 +14,7 @@ interface Product {
   image: string;
   createdAt: string;
   specifications?: Record<string, string>;
+  isFeatured?: boolean; // Added isFeatured flag
 }
 
 // Helper interface for the form state
@@ -39,6 +40,7 @@ const ProductFormModal: React.FC<{
       status: 'active',
       image: '',
       imageFile: null,
+      isFeatured: false, // Default to false
       specifications: {
         'Fabric': 'Pure Silk',
         'Length': '6.3 meters',
@@ -55,12 +57,18 @@ const ProductFormModal: React.FC<{
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle Checkbox separately
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: checked }));
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setFormData(prev => ({ 
         ...prev, 
-        image: URL.createObjectURL(file), // Preview
+        image: URL.createObjectURL(file),
         imageFile: file 
       }));
     }
@@ -98,6 +106,23 @@ const ProductFormModal: React.FC<{
           <button onClick={onClose} disabled={isSaving}><X /></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Featured Checkbox */}
+          <div className="bg-orange-50 p-3 rounded-md border border-orange-100 flex items-center space-x-3">
+             <input 
+                type="checkbox" 
+                id="isFeatured" 
+                name="isFeatured" 
+                checked={formData.isFeatured || false} 
+                onChange={handleCheckboxChange}
+                className="h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+             />
+             <label htmlFor="isFeatured" className="text-sm font-medium text-gray-800 flex items-center cursor-pointer">
+                <Star className="h-4 w-4 text-orange-500 mr-2 fill-current" />
+                Mark as Featured Product
+             </label>
+          </div>
+
           <div>
             <label className="block text-sm font-medium">Product Name</label>
             <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border rounded-md p-2 mt-1" required />
@@ -131,6 +156,7 @@ const ProductFormModal: React.FC<{
             </div>
           </div>
 
+          {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium">Image</label>
             {formData.image && (
@@ -220,13 +246,12 @@ const AdminProducts: React.FC = () => {
       setIsSaving(true);
       let imageUrl = formData.image;
 
-      // 1. Upload new image if selected
       if (formData.imageFile) {
         imageUrl = await productService.uploadImage(formData.imageFile);
       }
 
       const productPayload = { ...formData, image: imageUrl };
-      delete productPayload.imageFile; // Clean up before sending to DB
+      delete productPayload.imageFile; 
 
       if (formData.id) {
         // Update
@@ -297,6 +322,7 @@ const AdminProducts: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
@@ -307,13 +333,22 @@ const AdminProducts: React.FC = () => {
                     <div className="flex items-center">
                       <img src={product.image || 'https://via.placeholder.com/50'} alt="" className="h-10 w-10 rounded object-cover bg-gray-200" />
                       <div className="ml-3">
-                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                        <div className="flex items-center">
+                            <div className="text-sm font-medium text-gray-900 mr-2">{product.name}</div>
+                            {/* Star Icon for Featured Products */}
+                            {product.isFeatured && <Star className="h-4 w-4 text-orange-500 fill-current" />}
+                        </div>
                         <div className="text-xs text-gray-500">{product.category}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">₹{product.price}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{product.stock}</td>
+                  <td className="px-6 py-4 text-sm font-medium">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {product.status}
+                        </span>
+                  </td>
                   <td className="px-6 py-4 text-sm font-medium">
                     <div className="flex space-x-2">
                       <button onClick={() => { setEditingProduct(product); setIsModalOpen(true); }} className="text-blue-600 hover:text-blue-900"><Edit className="h-4 w-4" /></button>
