@@ -14,7 +14,8 @@ interface Order {
   product: string; // Derived from items
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentStatus: 'paid';
+  paymentStatus: 'paid' | 'pending';
+  paymentProof?: string; // Field for the screenshot URL
   createdAt: string;
 }
 
@@ -37,20 +38,22 @@ const AdminOrders: React.FC = () => {
       
       // Transform Supabase Data to Component Interface
       const formattedOrders: Order[] = data.map((order: any) => {
-        // Create a summary string for products (e.g., "Saree X, Saree Y")
-        const productNames = order.items.map((item: any) => item.name);
+        // Create a summary string for products (e.g., "Saree X + 2 more")
+        const items = Array.isArray(order.items) ? order.items : [];
+        const productNames = items.map((item: any) => item.name);
         const productSummary = productNames.length > 1 
           ? `${productNames[0]} + ${productNames.length - 1} more` 
-          : productNames[0];
+          : productNames[0] || 'Unknown Product';
 
         return {
           id: order.id.slice(0, 8).toUpperCase(), // Shorten UUID for display
           fullId: order.id, // Keep full ID for updates
           customer: { name: order.customer_name, email: order.email },
-          product: productSummary || 'Unknown Product',
+          product: productSummary,
           total: order.total_amount,
           status: order.status,
-          paymentStatus: order.payment_status,
+          paymentStatus: order.payment_status || 'pending',
+          paymentProof: order.payment_proof, // Map from DB
           createdAt: new Date(order.created_at).toLocaleDateString()
         };
       });
@@ -66,7 +69,7 @@ const AdminOrders: React.FC = () => {
 
   const handleStatusChange = async (fullId: string, newStatus: string) => {
     try {
-      // Optimistic Update
+      // Optimistic Update (Update UI immediately)
       setOrders(prev => prev.map(o => o.fullId === fullId ? { ...o, status: newStatus as any } : o));
       
       // API Call
@@ -78,7 +81,7 @@ const AdminOrders: React.FC = () => {
     }
   };
 
-  // Filter Logic (Same as before)
+  // Filter Logic
   const viewFilteredOrders = orders.filter(order => {
     if (activeView === 'delivered') return order.status === 'delivered';
     return order.status !== 'delivered';
@@ -105,7 +108,11 @@ const AdminOrders: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-600 h-10 w-10" /></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-orange-600 h-10 w-10" />
+      </div>
+    );
   }
 
   return (
@@ -117,7 +124,9 @@ const AdminOrders: React.FC = () => {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">Orders Management</h1>
           <p className="text-gray-600 mt-2">Track and manage customer orders.</p>
         </div>
-        <button onClick={fetchOrders} className="mt-4 sm:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm">Refresh List</button>
+        <button onClick={fetchOrders} className="mt-4 sm:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm flex items-center gap-2 transition-colors">
+           <Download className="h-4 w-4" /> Refresh List
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -151,10 +160,10 @@ const AdminOrders: React.FC = () => {
       {/* Tabs and Filters */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex border-b border-gray-200 mb-6">
-          <button onClick={() => setActiveView('current')} className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold ${activeView === 'current' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500'}`}>
+          <button onClick={() => setActiveView('current')} className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold transition-colors ${activeView === 'current' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500 hover:text-orange-600'}`}>
             <ShoppingCart className="h-5 w-5" /><span>Current Orders</span>
           </button>
-          <button onClick={() => setActiveView('delivered')} className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold ${activeView === 'delivered' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500'}`}>
+          <button onClick={() => setActiveView('delivered')} className={`flex items-center space-x-2 px-4 py-3 text-sm font-semibold transition-colors ${activeView === 'delivered' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-500 hover:text-orange-600'}`}>
             <Archive className="h-5 w-5" /><span>Delivered Orders</span>
           </button>
         </div>
@@ -162,10 +171,10 @@ const AdminOrders: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative md:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input type="text" placeholder={`Search...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3" />
+            <input type="text" placeholder={`Search by ID, Name or Email...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500" />
           </div>
           {activeView === 'current' && (
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-3">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
               <option value="processing">Processing</option>
@@ -186,6 +195,7 @@ const AdminOrders: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Customer</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Product</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Total</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Payment</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Date</th>
               </tr>
@@ -199,9 +209,26 @@ const AdminOrders: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-900 truncate block max-w-xs" title={order.product}>{order.product}</span></td>
                   <td className="px-6 py-4 whitespace-nowrap"><span className="text-lg font-bold text-green-600">₹{order.total.toLocaleString()}</span></td>
+                  
+                  {/* Payment Proof Column */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {order.paymentProof ? (
+                      <a 
+                        href={order.paymentProof} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline text-sm flex items-center font-medium"
+                      >
+                        <Eye className="h-4 w-4 mr-1" /> View Proof
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 text-xs italic">No proof</span>
+                    )}
+                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     {activeView === 'current' ? (
-                      <select value={order.status} onChange={(e) => handleStatusChange(order.fullId, e.target.value)} className={`w-full text-xs font-bold rounded-full capitalize border-2 p-2 text-center focus:outline-none focus:ring-2 ${getStatusColor(order.status)}`}>
+                      <select value={order.status} onChange={(e) => handleStatusChange(order.fullId, e.target.value)} className={`w-full text-xs font-bold rounded-full capitalize border-2 p-2 text-center focus:outline-none focus:ring-2 cursor-pointer ${getStatusColor(order.status)}`}>
                         <option value="pending">Pending</option>
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
@@ -215,7 +242,7 @@ const AdminOrders: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{order.createdAt}</td>
                 </tr>
               )) : (
-                <tr><td colSpan={6} className="text-center py-12 text-gray-500">No Orders Found</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-500">No Orders Found</td></tr>
               )}
             </tbody>
           </table>

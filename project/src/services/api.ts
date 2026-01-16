@@ -129,5 +129,39 @@ export const orderService = {
     
     if (error) throw error;
     return data;
+  },
+
+  // ... inside orderService ...
+
+  // 4. Upload Payment Screenshot
+  uploadProof: async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('payment-proofs')
+      .upload(filePath, file);
+
+    if (error) throw error;
+    
+    // Get Public URL
+    const { data } = supabase.storage.from('payment-proofs').getPublicUrl(filePath);
+    return data.publicUrl;
+  },
+
+  // 5. Link Proof to Order
+  addPaymentProof: async (orderId: string, proofUrl: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ 
+        payment_proof: proofUrl,
+        status: 'processing' // Auto-move to processing once paid
+      })
+      .eq('id', orderId);
+
+    if (error) throw error;
+    return true;
   }
 };
+

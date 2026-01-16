@@ -48,7 +48,7 @@ const Checkout: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // 1. Prepare data for Supabase
+      // 1. Prepare data
       const orderPayload = {
         customer_name: `${orderDetails.firstName} ${orderDetails.lastName}`,
         email: orderDetails.email,
@@ -59,22 +59,22 @@ const Checkout: React.FC = () => {
           state: orderDetails.state,
           pincode: orderDetails.pincode
         },
-        items: state.items, // Stores the cart items as JSON
+        items: state.items,
         total_amount: total,
-        status: 'pending',
-        payment_status: 'paid' // Assuming successful payment for now
+        status: 'pending',     // Initial status
+        payment_status: 'pending' // Waiting for upload
       };
 
-      // 2. Send to Backend
-      await orderService.create(orderPayload);
+      // 2. Create Order in Supabase
+      const newOrder = await orderService.create(orderPayload);
       
-      // 3. Cleanup
-      clearCart();
-      toast.success('Order placed successfully!');
-      navigate('/'); // Or navigate to an Order Success page
+      // 3. Redirect to Payment Page with Order ID
+      toast.success('Order created! Please complete payment.');
+      navigate(`/payment/${newOrder.id}`);
+      
     } catch (error) {
       console.error(error);
-      toast.error('Failed to place order. Please try again.');
+      toast.error('Failed to place order.');
     } finally {
       setIsProcessing(false);
     }
@@ -164,6 +164,8 @@ const Checkout: React.FC = () => {
       </div>
     </div>
   );
+
+  
 };
 
 export default Checkout;

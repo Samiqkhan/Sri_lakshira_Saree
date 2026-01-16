@@ -19,6 +19,7 @@ import AdminPanel from './pages/admin/AdminPanel';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import { Toaster } from 'react-hot-toast';
+import Payment from './pages/Payment';
 
 function App() {
   return (
@@ -62,6 +63,7 @@ const MainLayout = () => (
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/checkout" element={<Checkout />} />
+      <Route path="/payment/:orderId" element={<Payment />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/about" element={<About />} />
