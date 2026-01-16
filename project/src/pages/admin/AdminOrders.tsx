@@ -125,7 +125,7 @@ const AdminOrders: React.FC = () => {
           <p className="text-gray-600 mt-2">Track and manage customer orders.</p>
         </div>
         <button onClick={fetchOrders} className="mt-4 sm:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm flex items-center gap-2 transition-colors">
-           <Download className="h-4 w-4" /> Refresh List
+           Refresh List
         </button>
       </div>
 
