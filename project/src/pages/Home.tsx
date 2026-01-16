@@ -4,7 +4,7 @@ import { ArrowRight, Star, Truck, Shield, Headphones, Building, Loader2 } from '
 import { useLanguage } from '../context/LanguageContext';
 import { productService } from '../services/api';
 
-// Define the Product interface
+// 1. Add isFeatured to interface
 interface Product {
   id: string;
   name: string;
@@ -16,6 +16,7 @@ interface Product {
   rating: number;
   reviews: number;
   isNew?: boolean;
+  isFeatured?: boolean; 
 }
 
 const Home: React.FC = () => {
@@ -25,14 +26,12 @@ const Home: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Array of images for the hero section slideshow
   const heroImages = [
     '/images/hero-bg.png',
     '/images/hero-bg2.png',
     '/images/hero-bg3.png'
   ];
 
-  // Effect to handle the background image slideshow
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
@@ -40,15 +39,13 @@ const Home: React.FC = () => {
     return () => clearInterval(timer);
   }, [heroImages.length]);
 
-  // Fetch Real Data from Supabase
+  // Fetch Real Data
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         setIsLoading(true);
         const data = await productService.getAll();
 
-        // Transform Supabase data to match Product interface
-        // We set default ratings/reviews since they aren't in the DB yet
         const formattedProducts: Product[] = data.map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -57,14 +54,16 @@ const Home: React.FC = () => {
           category: item.category,
           fabric: item.fabric,
           rating: 4.8, 
-          reviews: Math.floor(Math.random() * 200) + 50, // Random reviews for display
-          isNew: true,
-          originalPrice: undefined // Add logic here if you store original price
+          reviews: 120,
+          isNew: true, // You can also add a flag for this in DB later
+          isFeatured: item.isFeatured // 2. Map the flag from API
         }));
 
-        // Use the first 3 items for Featured and first 4 for New Arrivals
-        // In a real app, you might have specific 'featured' flags in your DB
-        setFeaturedProducts(formattedProducts.slice(0, 3));
+        // 3. FILTER BY THE FLAG (Instead of slicing first 3)
+        const featured = formattedProducts.filter(p => p.isFeatured === true);
+        setFeaturedProducts(featured);
+        
+        // New Arrivals can still be the latest 4 items
         setNewArrivals(formattedProducts.slice(0, 4));
 
       } catch (error) {
@@ -78,26 +77,10 @@ const Home: React.FC = () => {
   }, []);
 
   const categories = [
-    {
-      name: 'Silk Sarees',
-      image: '/images/hero-silk.png',
-      link: '/products?category=silk'
-    },
-    {
-      name: 'Cotton Sarees',
-      image: '/images/hero-cotton.png',
-      link: '/products?category=cotton'
-    },
-    {
-      name: 'Kancheepuram Silk Sarees',
-      image: '/images/hero-kancheepuram.png',
-      link: '/products?category=designer'
-    },
-    {
-      name: 'Ready to Wear',
-      image: '/images/hero-readt-to-wear.png',
-      link: '/products?category=bridal'
-    }
+    { name: 'Silk Sarees', image: '/images/hero-silk.png', link: '/products?category=silk' },
+    { name: 'Cotton Sarees', image: '/images/hero-cotton.png', link: '/products?category=cotton' },
+    { name: 'Kancheepuram Silk', image: '/images/hero-kancheepuram.png', link: '/products?category=designer' },
+    { name: 'Ready to Wear', image: '/images/hero-readt-to-wear.png', link: '/products?category=bridal' }
   ];
 
   if (isLoading) {
@@ -154,17 +137,9 @@ const Home: React.FC = () => {
           <span className="text-gray-300 mx-6">❖</span>
           <span className="text-gray-700 text-sm mx-6">⭐ Rated 4.8/5 by 10,000+ Customers</span>
           <span className="text-gray-300 mx-6">❖</span>
-          <span className="text-gray-700 text-sm mx-6">🎁 Special Festive Offers</span>
-          <span className="text-gray-300 mx-6">❖</span>
-          
-          {/* Duplicate for loop effect */}
           <span className="text-gray-700 text-sm mx-6">✨ Free Shipping on Orders Above ₹2000</span>
           <span className="text-gray-300 mx-6">❖</span>
           <span className="text-gray-700 text-sm mx-6">🎉 New Collection: Banarasi Silk Sarees</span>
-          <span className="text-gray-300 mx-6">❖</span>
-          <span className="text-gray-700 text-sm mx-6">💎 Premium Quality Guaranteed</span>
-          <span className="text-gray-300 mx-6">❖</span>
-          <span className="text-gray-700 text-sm mx-6">🚚 Express Delivery Available</span>
         </div>
       </section>
 
@@ -182,11 +157,7 @@ const Home: React.FC = () => {
                 to={category.link}
                 className="group relative overflow-hidden rounded-3xl aspect-square hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-2xl"
               >
-                <img
-                  src={category.image}
-                  alt={category.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
+                <img src={category.image} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent group-hover:from-black/80 transition-all duration-500"></div>
                 <div className="absolute bottom-6 left-6 text-white transform group-hover:translate-y-[-4px] transition-transform duration-300">
                   <h3 className="text-xl font-bold mb-2">{category.name}</h3>
@@ -203,7 +174,7 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Featured Collection</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Handpicked masterpieces crafted by skilled artisans, each saree a testament to timeless beauty</p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Handpicked masterpieces crafted by skilled artisans</p>
           </div>
           
           {featuredProducts.length > 0 ? (
@@ -215,11 +186,7 @@ const Home: React.FC = () => {
                   className="group bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
                 >
                   <div className="relative overflow-hidden">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                    <img src={product.image} alt={product.name} className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-500" />
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
                       <Star className="h-5 w-5 text-yellow-500 fill-current" />
                     </div>
@@ -230,14 +197,7 @@ const Home: React.FC = () => {
                     <div className="flex items-center mb-3">
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.floor(product.rating)
-                                ? 'text-yellow-500 fill-current'
-                                : 'text-gray-300'
-                            }`}
-                          />
+                          <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />
                         ))}
                       </div>
                       <span className="ml-2 text-sm text-gray-500 font-medium">({product.reviews})</span>
@@ -251,7 +211,10 @@ const Home: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center text-gray-500">No featured products available.</div>
+            <div className="text-center py-10">
+              <p className="text-gray-500 text-lg">No products are currently marked as featured.</p>
+              <p className="text-gray-400 text-sm mt-2">Go to Admin Panel {'>'} Products to feature items.</p>
+            </div>
           )}
         </div>
       </section>
@@ -261,7 +224,7 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">New Arrivals</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Fresh from our artisan partners - the latest additions to our curated collection</p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Fresh from our artisan partners</p>
           </div>
           
           {newArrivals.length > 0 ? (
@@ -273,24 +236,14 @@ const Home: React.FC = () => {
                   className="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:-translate-y-3 transition-all duration-500 hover:shadow-2xl"
                 >
                   <div className="relative overflow-hidden aspect-[3/4]">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    {product.isNew && (
-                      <span className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">NEW</span>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <span className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">NEW</span>
                   </div>
                   <div className="p-5 text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2 truncate group-hover:text-orange-600 transition-colors">{product.name}</h3>
                     <p className="text-sm text-gray-600 mb-3 font-medium">{product.fabric}</p>
                     <div className="flex items-center justify-center space-x-2">
                       <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
-                      {product.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
-                      )}
                     </div>
                   </div>
                 </Link>
@@ -301,10 +254,7 @@ const Home: React.FC = () => {
           )}
 
           <div className="mt-12 text-center">
-            <Link
-              to="/products"
-              className="inline-flex items-center bg-gradient-to-r from-orange-600 to-pink-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:from-orange-700 hover:to-pink-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
-            >
+            <Link to="/products" className="inline-flex items-center bg-gradient-to-r from-orange-600 to-pink-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:from-orange-700 hover:to-pink-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
               View All Products
               <ArrowRight className="ml-3 h-6 w-6" />
             </Link>
@@ -312,73 +262,24 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* About Us Section */}
+      {/* About Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div className="rounded-2xl overflow-hidden shadow-lg">
-              <img
-                src="/images/about.png"
-                alt="Close-up of a colorful saree"
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-              />
-            </div>
-            <div className="space-y-6">
-              <div className="flex items-center">
-                <Building className="h-10 w-10 text-orange-600 mr-4" />
-                <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">About Sri Lakshira</h2>
-              </div>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                Founded in 2024, Sri Lakshira was born from a desire to celebrate the rich heritage of Indian textiles. We connect local artisans with saree lovers globally, believing every saree is a piece of art.
-              </p>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                Our mission is to empower weavers through fair trade, offering authentic, handcrafted sarees that you will cherish for a lifetime.
-              </p>
-              <Link
-                to="/about"
-                className="inline-flex items-center text-orange-600 font-bold text-lg hover:text-orange-700 transition-colors group"
-              >
-                Read Our Full Story
-                <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="group bg-white p-8 rounded-3xl shadow-xl text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-3">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
-                <Truck className="h-10 w-10 text-orange-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Free Shipping</h3>
-              <p className="text-gray-600 leading-relaxed">Free delivery on orders above ₹2000</p>
-            </div>
-            <div className="group bg-white p-8 rounded-3xl shadow-xl text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-3">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
-                <Shield className="h-10 w-10 text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Secure Payment</h3>
-              <p className="text-gray-600 leading-relaxed">100% secure online payment methods</p>
-            </div>
-            <div className="group bg-white p-8 rounded-3xl shadow-xl text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-3">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
-                <Headphones className="h-10 w-10 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">24/7 Support</h3>
-              <p className="text-gray-600 leading-relaxed">Round the clock customer support</p>
-            </div>
-            <div className="group bg-white p-8 rounded-3xl shadow-xl text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-3">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
-                <Star className="h-10 w-10 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Quality Assured</h3>
-              <p className="text-gray-600 leading-relaxed">Premium quality guaranteed</p>
-            </div>
-          </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+             <div className="rounded-2xl overflow-hidden shadow-lg">
+               <img src="/images/about.png" alt="Saree" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+             </div>
+             <div className="space-y-6">
+               <div className="flex items-center">
+                 <Building className="h-10 w-10 text-orange-600 mr-4" />
+                 <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">About Sri Lakshira</h2>
+               </div>
+               <p className="text-gray-700 leading-relaxed text-lg">Founded in 2024, Sri Lakshira was born from a desire to celebrate the rich heritage of Indian textiles.</p>
+               <Link to="/about" className="inline-flex items-center text-orange-600 font-bold text-lg hover:text-orange-700 transition-colors group">
+                 Read Our Full Story <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1" />
+               </Link>
+             </div>
+           </div>
         </div>
       </section>
     </div>
