@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 
-// Helper to get the full public URL for a product image
+// Helper to get the full public URL for an image
+// Handles both raw file paths and already complete URLs
 const getImageUrl = (path: string) => {
   if (!path) return '';
   if (path.startsWith('http')) return path; // Already a full URL
@@ -8,6 +9,7 @@ const getImageUrl = (path: string) => {
   return data.publicUrl;
 };
 
+// --- PRODUCT SERVICE ---
 export const productService = {
   // 1. Fetch all products
   getAll: async () => {
@@ -20,13 +22,15 @@ export const productService = {
     
     return data.map(item => ({
       ...item,
-      image: item.image_url ? getImageUrl(item.image_url) : '', 
+      image: item.image_url ? getImageUrl(item.image_url) : '',
+      videoUrl: item.video_url ? getImageUrl(item.video_url) : '',
       isFeatured: item.is_featured, // Map DB snake_case to Frontend camelCase
+      colors: item.colors || [],    // Map colors array
       specifications: item.specifications || {}
     }));
   },
 
-  // 2. Get Single Product
+  // 2. Get Single Product by ID
   getById: async (id: string) => {
     const { data, error } = await supabase
       .from('products')
@@ -38,7 +42,9 @@ export const productService = {
     return { 
       ...data, 
       image: data.image_url ? getImageUrl(data.image_url) : '',
+      videoUrl: data.video_url ? getImageUrl(data.video_url) : '',
       isFeatured: data.is_featured,
+      colors: data.colors || [],
       specifications: data.specifications || {}
     };
   },
@@ -59,10 +65,25 @@ export const productService = {
     return filePath;
   },
 
-  // 4. Create Product
+  // 4. Upload Product Video (Optional)
+  uploadVideo: async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('product-videos')
+      .upload(filePath, file);
+
+    if (error) throw error;
+    
+    return filePath;
+  },
+
+  // 5. Create Product
   create: async (productData: any) => {
     // Extract frontend fields
-    const { image, isFeatured, ...dbData } = productData;
+    const { image, videoUrl, isFeatured, colors, ...dbData } = productData;
     
     // Validate isFeatured is a strict boolean
     const isFeaturedBoolean = !!isFeatured; 
@@ -72,18 +93,26 @@ export const productService = {
       .insert([{ 
         ...dbData, 
         image_url: image, 
-        is_featured: isFeaturedBoolean // Send strict boolean to DB
+        video_url: videoUrl,
+        is_featured: isFeaturedBoolean, // Send strict boolean to DB
+        colors: colors || []          // Send colors array
       }])
       .select()
       .single();
 
     if (error) throw error;
-    return { ...data, image: data.image_url, isFeatured: data.is_featured };
+    return { 
+        ...data, 
+        image: data.image_url, 
+        videoUrl: data.video_url,
+        isFeatured: data.is_featured,
+        colors: data.colors 
+    };
   },
 
-  // 5. Update Product
+  // 6. Update Product
   update: async (id: string, productData: any) => {
-    const { image, isFeatured, ...dbData } = productData;
+    const { image, videoUrl, isFeatured, colors, ...dbData } = productData;
 
     // Validate isFeatured is a strict boolean
     const isFeaturedBoolean = !!isFeatured;
@@ -93,17 +122,25 @@ export const productService = {
       .update({ 
         ...dbData, 
         image_url: image, 
-        is_featured: isFeaturedBoolean 
+        video_url: videoUrl,
+        is_featured: isFeaturedBoolean,
+        colors: colors || []
       })
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
-    return { ...data, image: data.image_url, isFeatured: data.is_featured };
+    return { 
+        ...data, 
+        image: data.image_url, 
+        videoUrl: data.video_url,
+        isFeatured: data.is_featured,
+        colors: data.colors 
+    };
   },
 
-  // 6. Delete Product
+  // 7. Delete Product
   delete: async (id: string) => {
     const { error } = await supabase
       .from('products')
@@ -115,6 +152,7 @@ export const productService = {
   }
 };
 
+// --- ORDER SERVICE ---
 export const orderService = {
   // 1. Create Order
   create: async (orderData: any) => {
@@ -164,7 +202,7 @@ export const orderService = {
 
     if (error) throw error;
     
-    // Get Public URL
+    // Get Public URL directly for proofs
     const { data } = supabase.storage.from('payment-proofs').getPublicUrl(filePath);
     return data.publicUrl;
   },
@@ -175,7 +213,7 @@ export const orderService = {
       .from('orders')
       .update({ 
         payment_proof: proofUrl,
-        status: 'processing', // Move to processing
+        status: 'processing', // Move to processing automatically
         payment_status: 'paid' 
       })
       .eq('id', orderId);

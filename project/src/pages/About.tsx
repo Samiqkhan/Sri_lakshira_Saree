@@ -2,26 +2,26 @@ import React from 'react';
 import { Building, Target, Users, Heart } from 'lucide-react';
 
 const About: React.FC = () => {
-  const teamMembers = [
-    {
-      name: 'Balaji ',
-      role: 'Founder & CEO',
-      image: '/images/team-1.png',
-      bio: 'Balaji started Sri Lakshira with a passion for preserving traditional Indian craftsmanship and bringing it to a global audience.'
-    },
-    {
-      name: 'Sri Lakshira',
-      role: 'Head of Design',
-      image: '/images/team-2.png',
-      bio: 'Sri Lakshira our creative team, blending contemporary designs with timeless saree traditions.'
-    },
-    {
-      name: 'Rahul',
-      role: 'Marketing Director',
-      image: '/images/team-3.png',
-      bio: 'Rahul is the voice of Sri Lakshira, connecting with our community and sharing our story.'
-    }
-  ];
+  // const teamMembers = [
+  //   {
+  //     name: 'Balaji ',
+  //     role: 'Founder & CEO',
+  //     image: '/images/team-1.png',
+  //     bio: 'Balaji started Sri Lakshira Silks with a passion for preserving traditional Indian craftsmanship and bringing it to a global audience.'
+  //   },
+  //   {
+  //     name: 'Arun',
+  //     role: 'Head of Design',
+  //     image: '/images/team-2.png',
+  //     bio: 'Sri Lakshira Silks our creative team, blending contemporary designs with timeless saree traditions.'
+  //   },
+  //   {
+  //     name: 'Rahul',
+  //     role: 'Marketing Director',
+  //     image: '/images/team-3.png',
+  //     bio: 'Rahul is the voice of Sri Lakshira Silks, connecting with our community and sharing our story.'
+  //   }
+  // ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -36,7 +36,7 @@ const About: React.FC = () => {
           />
         </div>
         <div className="relative z-20 text-center text-white max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">About Sri Lakshira</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">About Sri Lakshira Silks</h1>
           <p className="text-lg md:text-xl text-gray-200">
             Weaving stories of tradition, elegance, and craftsmanship.
           </p>
@@ -53,7 +53,11 @@ const About: React.FC = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Our Story</h2>
               </div>
               <p className="text-gray-700 leading-relaxed">
-                Founded in 2024 in the heart of T.Kavundampalayam, Tamil Nadu, Sri Lakshira was born from a desire to celebrate the rich heritage of Indian textiles. We started as a small boutique with a big dream: to connect the incredible artisans from our local community with saree lovers across the globe. We believe every saree is a piece of art, a story woven in threads of tradition and passion.
+                Founded in 1985 in the heart of Panjukalipatty, Tamil Nadu, 
+Sri Lakshira
+was born from a desire to celebrate the rich heritage of Indian textiles. We started as small saree manufacture with big dream: to connect the incredible artisans from our local community with saree lovers across the globe. We believe every saree is a piece of art, a story woven in threads of tradition and passion.
+
+
               </p>
             </div>
             <div>
@@ -62,7 +66,16 @@ const About: React.FC = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Our Mission</h2>
               </div>
               <p className="text-gray-700 leading-relaxed">
-                Our mission is to empower local weavers and artisans by providing a platform to showcase their exceptional skills. We are committed to fair trade practices, ensuring that the creators of these beautiful garments receive the recognition and compensation they deserve. We aim to be the most trusted destination for authentic, handcrafted sarees that you will cherish for a lifetime.
+                Our mission is to empower local weavers and artisans by providing a global platform to showcase their exceptional skills. We are committed to fair trade practices, ensuring creators receive the recognition they deserve while bringing luxury at affordable price points for our customers. We aim to be the most trusted destination for authentic, handcrafted sarees that you will cherish for a lifetime, bridging the gap between traditional craftsmanship and modern elegance.
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center mb-4">
+                <Target className="h-7 w-7 md:h-8 md:w-8 text-orange-600 mr-3" />
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Our Vision</h2>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                To preserve the soul of Indian silk by weaving timeless elegance into every generation.
               </p>
             </div>
           </div>
@@ -110,7 +123,7 @@ const About: React.FC = () => {
         </div>
 
         {/* Meet the Team Section */}
-        <div>
+        {/* <div>
           <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12">Meet the Team</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12">
             {teamMembers.map((member) => (
@@ -128,7 +141,7 @@ const About: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

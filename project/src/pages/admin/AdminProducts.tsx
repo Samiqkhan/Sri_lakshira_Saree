@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Eye, X, UploadCloud, Star, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, X, UploadCloud, Star, Video, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productService } from '../../services/api'; 
 
@@ -12,16 +12,18 @@ interface Product {
   stock: number;
   status: 'active' | 'inactive';
   image: string;
+  videoUrl?: string; // Optional video URL
   createdAt: string;
   specifications?: Record<string, string>;
-  isFeatured?: boolean; // Added isFeatured flag
+  isFeatured?: boolean;
+  colors?: string[];
 }
 
-// Helper interface for the form state
 interface ProductFormState extends Omit<Product, 'id' | 'createdAt'> {
   id?: string;
   createdAt?: string;
   imageFile?: File | null;
+  videoFile?: File | null;
 }
 
 const ProductFormModal: React.FC<{
@@ -31,19 +33,21 @@ const ProductFormModal: React.FC<{
   isSaving: boolean;
 }> = ({ product, onClose, onSave, isSaving }) => {
   const [formData, setFormData] = useState<ProductFormState>(
-    product ? { ...product, imageFile: null } : {
+    product ? { ...product, imageFile: null, videoFile: null } : {
       name: '',
       price: 0,
-      category: 'silk',
+      category: 'soft-silk',
       fabric: '',
       stock: 0,
       status: 'active',
       image: '',
+      videoUrl: '',
       imageFile: null,
-      isFeatured: false, // Default to false
+      videoFile: null,
+      isFeatured: false,
+      colors: [],
       specifications: {
-        'Fabric': 'Pure Silk',
-        'Length': '6.3 meters',
+        'Fabric': 'Soft Silk',
         'Care': 'Dry Clean Only',
       },
     }
@@ -51,13 +55,13 @@ const ProductFormModal: React.FC<{
   
   const [specKey, setSpecKey] = useState('');
   const [specValue, setSpecValue] = useState('');
+  const [colorInput, setColorInput] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle Checkbox separately
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setFormData((prev) => ({ ...prev, [name]: checked }));
@@ -73,6 +77,36 @@ const ProductFormModal: React.FC<{
       }));
     }
   };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setFormData(prev => ({ 
+        ...prev, 
+        videoFile: file 
+      }));
+    }
+  };
+
+  // --- Color Handlers ---
+  const handleAddColor = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (colorInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        colors: [...(prev.colors || []), colorInput.trim()]
+      }));
+      setColorInput('');
+    }
+  };
+
+  const handleRemoveColor = (colorToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      colors: (prev.colors || []).filter(c => c !== colorToRemove)
+    }));
+  };
+  // ----------------------
 
   const handleAddSpecification = () => {
     if (specKey && specValue) {
@@ -143,16 +177,51 @@ const ProductFormModal: React.FC<{
             <div>
               <label className="block text-sm font-medium">Category</label>
               <select name="category" value={formData.category} onChange={handleChange} className="w-full border rounded-md p-2 mt-1">
-                <option value="silk">Silk</option>
-                <option value="cotton">Cotton</option>
-                <option value="designer">Designer</option>
-                <option value="bridal">Bridal</option>
-                <option value="ready-to-wear">Ready-to-Wear</option>
+                <option value="soft-silk">Soft Silk</option>
+                <option value="pure-silk">Pure Silk</option>
+                <option value="kancheepuram-silk">Kancheepuram Silk</option>
+                <option value="crepe-silk">Crepe Silk</option>
+                <option value="semi-silk">Semi Silk</option>
+                <option value="daily-wear">Daily Wear</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium">Fabric</label>
               <input type="text" name="fabric" value={formData.fabric} onChange={handleChange} className="w-full border rounded-md p-2 mt-1" required />
+            </div>
+          </div>
+
+          {/* Color Selection */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Available Colors</label>
+            <div className="flex gap-2 mb-2">
+              <input 
+                type="text" 
+                value={colorInput} 
+                onChange={(e) => setColorInput(e.target.value)}
+                placeholder="Type color (e.g. Red)" 
+                className="flex-1 border rounded-md p-2 text-sm" 
+              />
+              <button 
+                onClick={handleAddColor} 
+                className="bg-gray-200 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300"
+              >
+                Add
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.colors && formData.colors.map((color, index) => (
+                <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {color}
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveColor(color)}
+                    className="ml-1.5 h-3.5 w-3.5 text-blue-500 hover:text-blue-700"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
             </div>
           </div>
 
@@ -167,6 +236,24 @@ const ProductFormModal: React.FC<{
                     <UploadCloud className="h-4 w-4 mr-2"/>
                     Upload Image
                     <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                </label>
+            </div>
+          </div>
+
+          {/* Video Upload (Optional) */}
+          <div>
+            <label className="block text-sm font-medium">Draping Video (Optional)</label>
+            {formData.videoUrl && !formData.videoFile && (
+               <p className="text-xs text-green-600 mt-1 flex items-center"><Video className="h-3 w-3 mr-1"/> Current video active</p>
+            )}
+            {formData.videoFile && (
+               <p className="text-xs text-blue-600 mt-1 flex items-center"><Video className="h-3 w-3 mr-1"/> New video selected: {formData.videoFile.name}</p>
+            )}
+            <div className="mt-1 flex items-center space-x-2">
+                <label className="cursor-pointer bg-gray-50 py-2 px-3 border border-gray-300 rounded-md text-sm hover:bg-gray-100 flex items-center">
+                    <Video className="h-4 w-4 mr-2 text-gray-500"/>
+                    {formData.videoUrl || formData.videoFile ? 'Change Video' : 'Upload Video'}
+                    <input type="file" className="hidden" accept="video/*" onChange={handleVideoChange} />
                 </label>
             </div>
           </div>
@@ -209,6 +296,7 @@ const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -245,13 +333,21 @@ const AdminProducts: React.FC = () => {
     try {
       setIsSaving(true);
       let imageUrl = formData.image;
+      let videoUrl = formData.videoUrl;
 
+      // 1. Upload new image if selected
       if (formData.imageFile) {
         imageUrl = await productService.uploadImage(formData.imageFile);
       }
 
-      const productPayload = { ...formData, image: imageUrl };
+      // 2. Upload new video if selected
+      if (formData.videoFile && productService.uploadVideo) {
+         videoUrl = await productService.uploadVideo(formData.videoFile);
+      }
+
+      const productPayload = { ...formData, image: imageUrl, videoUrl: videoUrl };
       delete productPayload.imageFile; 
+      delete productPayload.videoFile;
 
       if (formData.id) {
         // Update
@@ -273,9 +369,11 @@ const AdminProducts: React.FC = () => {
     }
   };
 
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter(product => {
+     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+     const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+     return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="space-y-6">
@@ -300,15 +398,30 @@ const AdminProducts: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 w-full border rounded-md px-3 py-2"
-          />
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full border rounded-md px-3 py-2"
+            />
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="all">All Categories</option>
+            <option value="soft-silk">Soft Silk</option>
+            <option value="pure-silk">Pure Silk</option>
+            <option value="kancheepuram-silk">Kancheepuram Silk</option>
+            <option value="crepe-silk">Crepe Silk</option>
+            <option value="semi-silk">Semi Silk</option>
+            <option value="daily-wear">Daily Wear</option>
+          </select>
         </div>
       </div>
 
@@ -321,7 +434,7 @@ const AdminProducts: React.FC = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Colors</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
@@ -331,19 +444,30 @@ const AdminProducts: React.FC = () => {
                 <tr key={product.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <img src={product.image || 'https://via.placeholder.com/50'} alt="" className="h-10 w-10 rounded object-cover bg-gray-200" />
+                      <img 
+                        src={product.image || 'https://placehold.co/50'} 
+                        alt="" 
+                        className="h-10 w-10 rounded object-cover bg-gray-200" 
+                      />
                       <div className="ml-3">
                         <div className="flex items-center">
                             <div className="text-sm font-medium text-gray-900 mr-2">{product.name}</div>
-                            {/* Star Icon for Featured Products */}
                             {product.isFeatured && <Star className="h-4 w-4 text-orange-500 fill-current" />}
                         </div>
-                        <div className="text-xs text-gray-500">{product.category}</div>
+                        <div className="text-xs text-gray-500 capitalize">{product.category.replace('-', ' ')}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">₹{product.price}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{product.stock}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    <div className="flex flex-wrap gap-1">
+                        {product.colors && product.colors.length > 0 ? (
+                            product.colors.map(c => <span key={c} className="w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: c.toLowerCase()}} title={c}></span>)
+                        ) : (
+                            <span>-</span>
+                        )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-sm font-medium">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                           {product.status}

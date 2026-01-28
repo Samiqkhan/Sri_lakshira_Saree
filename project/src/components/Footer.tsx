@@ -20,7 +20,7 @@ const Footer: React.FC = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">SS</span>
               </div>
-              <span className="text-2xl font-bold">Sri Lakshira</span>
+              <span className="text-2xl font-bold">Sri Lakshira Silks</span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
               Discover the finest collection of traditional and contemporary sarees. 
@@ -57,7 +57,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-orange-500" />
-                <span className="text-gray-300">+91 98765 43210</span>
+                <span className="text-gray-300">+91 93619 83337</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-orange-500" />
@@ -66,8 +66,8 @@ const Footer: React.FC = () => {
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-orange-500 mt-1" />
                 <span className="text-gray-300">
-                  123 Sri Lakshira,<br />
-                  Mettur, Salem
+                  10.	4/440, Anna Nagar, Panjukalipatty,<br />
+                  Omalur (T.K), Salem – 636455
                 </span>
               </div>
             </div>
@@ -76,7 +76,7 @@ const Footer: React.FC = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 Sri Lakshira. All rights reserved. Made with ❤️ by Samiq.
+            © 2024 Sri Lakshira Silks. All rights reserved. Made with ❤️ by Samiq.
           </p>
         </div>
       </div>

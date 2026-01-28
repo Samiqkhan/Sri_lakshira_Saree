@@ -1,106 +1,138 @@
 import React from 'react';
-import { Shield, Truck, Package, Globe, Video, AlertTriangle, Mail, Phone, MessageCircle } from 'lucide-react';
+import { Shield, Truck, RefreshCw, Lock, AlertCircle, Monitor } from 'lucide-react';
 
 const Policies: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-stone-100 to-neutral-200 py-12 md:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Shield className="h-16 w-16 text-orange-600 mx-auto mb-4" />
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Our Policies</h1>
-          <p className="text-lg md:text-xl text-gray-600">
-            Shipping, Returns, Refunds, and everything you need to know.
-          </p>
-        </div>
-      </section>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 prose lg:prose-lg">
-        {/* Shipping Policy */}
-        <div className="p-6 bg-white rounded-lg shadow-sm mb-8">
-            <h2 className="flex items-center"><Truck className="h-6 w-6 mr-3 text-orange-600" />Shipping Policy</h2>
-            <p>At Sri Lakshira, we are committed to ensuring a smooth and timely delivery experience for all our customers across India.</p>
-            
-            <h3>Domestic Shipping</h3>
-            <ul>
-                <li>Shipping charges will be calculated during checkout depending on the destination and weight of the package.</li>
-                <li>Our logistic Courier Partners are Professional, DTDC, Delivery and ST.</li>
-                <li>Orders are delivered within <strong>7 to 10 working days</strong> or earlier from the date of the order.</li>
-                <li>We ship throughout the week except during Sundays and Public Holidays.</li>
-            </ul>
-
-            <h3>International Shipping</h3>
-            <ul>
-                <li>Shipping charges will be calculated during checkout depending on the destination and weight of the package.</li>
-                <li>Our logistic Partner is DHL & FedEx.</li>
-                <li>Orders are delivered within <strong>14 to 20 working days</strong> or earlier from the date of the order.</li>
-                <li>We ship throughout the week except during Sundays and Public Holidays.</li>
-                <li>Any additional Taxes/Import Duties/Customs charges levied by the country of import will be borne by the customer. The customer is liable to reimburse the carrier for any such charges paid by carrier on behalf of the customer.</li>
-                <li>Shipping charges will be automatically added to your order at checkout. Please note that once an order is placed, cancellation requests cannot be accepted.</li>
-            </ul>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Store Policies</h1>
+          <p className="text-lg text-gray-600">Everything you need to know about shopping with Sri Lakshira</p>
         </div>
 
-        {/* Unboxing Recommendation */}
-        <div className="p-6 bg-white rounded-lg shadow-sm mb-8">
-            <h2 className="flex items-center"><Video className="h-6 w-6 mr-3 text-orange-600" />Unboxing Recommendation</h2>
-            <p>To ensure a smooth support experience, we recommend recording an <strong>unboxing video</strong> while opening your package. This helps in case of any concerns regarding your order. We appreciate your support and patience.</p>
-        </div>
+        <div className="space-y-8">
+          {/* Shipping Policy */}
+          <div className="bg-white rounded-2xl shadow-sm p-8">
+            <div className="flex items-center mb-6">
+              <div className="bg-orange-100 p-3 rounded-full mr-4">
+                <Truck className="h-6 w-6 text-orange-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Shipping Policy</h2>
+            </div>
+            <div className="prose text-gray-600">
+              <ul className="list-disc pl-5 space-y-2">
+                <li>We offer free shipping on all orders above ₹2000 within India.</li>
+                <li>Orders are typically processed within 24-48 hours of payment confirmation.</li>
+                <li>Standard delivery time is 5-7 business days for metro cities and 7-10 days for other locations.</li>
+                <li>Express delivery options are available at checkout for select pin codes.</li>
+                <li>You will receive a tracking number via email/SMS once your order is shipped.</li>
+              </ul>
+            </div>
+          </div>
 
-        {/* Disclaimer */}
-        <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm mb-8">
-            <h2 className="flex items-center"><AlertTriangle className="h-6 w-6 mr-3 text-yellow-600" />Disclaimer</h2>
-            <ol>
-                <li>Our products are packed in a secure tamper-proof packaging. If you find the package is tampered, <strong>please do not accept delivery</strong> and return it back to the delivery person. Please email us at <a href="mailto:srilakshira@gmail.com">srilakshira@gmail.com</a> mentioning your Order ID and we’ll do the needful. If the delivery has been accepted, it will be assumed that the package was received in a secure manner.</li>
-                <li>We are not liable for any delays in delivery by the courier company. But will definitely support our customer to track down a package through our logistic partner.</li>
-            </ol>
-        </div>
+          {/* Exchange & Refund Policy */}
+          <div className="bg-white rounded-2xl shadow-sm p-8">
+            <div className="flex items-center mb-6">
+              <div className="bg-orange-100 p-3 rounded-full mr-4">
+                <RefreshCw className="h-6 w-6 text-orange-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Exchange Policy</h2>
+            </div>
+            <div className="prose text-gray-600">
+              <ol className="list-decimal pl-5 space-y-2">
+                <li>
+                  <strong>Exchanges are applicable only for defective or damaged products.</strong> If your order arrives damaged, please contact us via WhatsApp at <strong className="text-orange-600">+91 98765 43210</strong> within <strong>48 hours</strong> of delivery.
+                </li>
+                <li>
+                  To be eligible for an exchange, your item must be unused, in the same condition that you received it, and in the original packaging with tags intact.
+                </li>
+                <li>
+                  We do not offer refunds or exchanges for "change of mind" or color discrepancies due to screen settings.
+                </li>
+                <li>
+                  For authorized returns, we will arrange a reverse pickup from your address at no extra cost.
+                </li>
+                <li className="font-medium text-orange-800 bg-orange-50 p-2 rounded">
+                  Please note that we offer exchange facilities under exceptional circumstances <strong>only once per order</strong>. We regretfully cannot accept repetitive exchange requests.
+                </li>
+              </ol>
+            </div>
+          </div>
 
-        {/* Refund & Exchange Policy */}
-        <div className="p-6 bg-white rounded-lg shadow-sm mb-8">
-            <h2 className="flex items-center"><Package className="h-6 w-6 mr-3 text-orange-600" />Refund & Exchange Policy</h2>
-            
-            <h3>Order Cancellation</h3>
-            <ul>
-                <li>Customer can request order cancellation within <strong>12 Hours</strong> of placing the order by contacting our customer care via WhatsApp at <a href="https://wa.me/919876543210">+91 98765 43210</a> or Email at <a href="mailto:srilakshira@gmail.com">srilakshira@gmail.com</a>.</li>
-                <li>Orders cannot be canceled if they have already been dispatched.</li>
-                <li><strong>Sri Lakshira</strong> has full rights to cancel & refund the money of any orders without customer approval due to incorrect information in the order, or such issues beyond our control, like courier delay, manufacturing delay etc.</li>
-                <li>In case the ordered product is out of stock, a refund will be processed within <strong>7 days</strong> via UPI ID or Bank Account.</li>
-            </ul>
+          {/* Privacy & Security */}
+          <div className="bg-white rounded-2xl shadow-sm p-8">
+            <div className="flex items-center mb-6">
+              <div className="bg-orange-100 p-3 rounded-full mr-4">
+                <Lock className="h-6 w-6 text-orange-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Privacy & Security</h2>
+            </div>
+            <div className="prose text-gray-600">
+              <p className="mb-4">
+                Your privacy is important to us. We use industry-standard encryption to protect your personal information and payment details.
+              </p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>We never store your credit/debit card information on our servers.</li>
+                <li>Your personal data is used only for order processing and shipping purposes.</li>
+                <li>We do not sell or share your information with third-party marketing agencies.</li>
+              </ul>
+            </div>
+          </div>
 
-            <h3>Return & Exchange Policy</h3>
-            <ul>
-                <li>Exchanges are applicable <strong>only for defective or damaged products</strong>. If your order arrives damaged, please contact us via WhatsApp at <a href="https://wa.me/919876543210">+91 98765 43210</a> within <strong>48 hours</strong> of delivery.</li>
-                <li>If you believe you have received the wrong or a damaged saree, kindly send an email to <a href="mailto:srilakshira@gmail.com">srilakshira@gmail.com</a> with a <strong>parcel opening video without any cut or edit</strong>.</li>
-                <li>Exchange can be done with other products. We will bear the courier cost in case of returning a damaged/wrong saree.</li>
-                <li>Record an unboxing video while returning the package to ensure a smooth process.</li>
-                <li>Once the products are sold, they can be exchanged/returned against <strong>store credit only</strong>. (Store Credit is the amount of refund given back to the customer in the form of a coupon code with lifetime validity).</li>
-            </ul>
+          {/* Quality Guarantee */}
+          <div className="bg-white rounded-2xl shadow-sm p-8">
+            <div className="flex items-center mb-6">
+              <div className="bg-orange-100 p-3 rounded-full mr-4">
+                <Shield className="h-6 w-6 text-orange-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Quality Guarantee</h2>
+            </div>
+            <div className="prose text-gray-600">
+              <p>
+                Every saree at Sri Lakshira goes through a rigorous quality check before being shipped. We guarantee the authenticity of our fabrics and the craftsmanship of our weavers.
+              </p>
+            </div>
+          </div>
 
-            <h3>Refund Policy</h3>
-            <p>We process refunds only after the returned product reaches our warehouse and passes the quality check.</p>
-            <ul>
-                <li><strong>Prepaid Orders:</strong> Refunds will be credited to your original payment method within <strong>3-4 business days</strong> after the product passes our quality check.</li>
-            </ul>
-        </div>
+          {/* Disclaimer - FULLY UPDATED */}
+          <div className="bg-white rounded-2xl shadow-sm p-8 border-l-4 border-yellow-400">
+            <div className="flex items-center mb-6">
+              <div className="bg-yellow-100 p-3 rounded-full mr-4">
+                <AlertCircle className="h-6 w-6 text-yellow-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Disclaimer</h2>
+            </div>
+            <div className="prose text-gray-600 space-y-4">
+              <p className="leading-relaxed">
+                Great care and effort has been taken to present the Sarees and other garments in our website to match their Original color and grandeur. Since our pictures are of Very High Quality it may take some time to download. Please be patient and allow the pictures to get completely downloaded before you can view or order it.
+              </p>
+              <p className="leading-relaxed">
+                We always try to minimize color variations between the actual product and that displayed on the screen. However, the colors of the Sarees and other garments shown on the web catalogue may vary slightly from the original product due to various reasons like:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Variations in monitor resolution levels</li>
+                <li>Having a poor VGA card (Display Card)</li>
+                <li>Having the minimum color setting in your Monitor Display Properties</li>
+                <li>Setting the Brightness and Contrast levels of your monitor to low or high values</li>
+              </ul>
 
-        {/* Disclaimers */}
-         <div className="p-6 bg-white rounded-lg shadow-sm mb-8">
-            <h2 className="flex items-center"><AlertTriangle className="h-6 w-6 mr-3 text-orange-600" />Disclaimers</h2>
-            <h3>Color & Description Disclaimer</h3>
-            <p>We strive to display colors as accurately as possible, but slight variations may occur due to lighting, photography conditions, and screen settings. Product details such as weight, work details, and size may vary slightly. Customers should consider these minor differences when making a purchase.</p>
-            
-            <h3>For Silk Sarees</h3>
-            <ul>
-                <li>Please note that as a policy we do not entertain money refunds or exchange under any circumstance.</li>
-                <li>In exceptional situations when a product exchange is required, it can only be processed through store credit. Please note that we offer exchange facilities under exceptional circumstances only once per order. We regretfully cannot accept repetitive exchange requests.</li>
-                <li>Once the order is booked the same cannot be cancelled.</li>
-                <li>In the case of International shipments, if the customer intends to exchange/return the product under exceptional circumstance, the shipping, customs or any other additional charges on the returning product will have to be borne by the customer. Store credit will be given only for the value of the product.</li>
-                <li>Special/Customised orders are made specifically on customer requests and therefore cannot be cancelled or exchanged once the order is placed.</li>
-            </ul>
-        </div>
-        
-        <div className="text-center text-gray-700">
-            <p>Thank you for shopping with <strong>Sri Lakshira</strong>! We appreciate your trust and support.</p>
+              <div className="bg-gray-50 p-4 rounded-lg mt-4 border border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-3">
+                  <Monitor className="h-5 w-5 mr-2 text-gray-600" />
+                  Recommended Color Settings
+                </h3>
+                <p className="mb-2 text-sm text-gray-700">
+                  The following settings will help you view the Sarees and garments presented in our website closest to their original colors:
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                  <li>Set the Screen Resolution to <strong>1366*768 pixels minimum</strong></li>
+                  <li>Make your Monitor support <strong>more than 256 colors</strong>, by changing the Display settings</li>
+                  <li>Set your Monitor Brightness value to <strong>75% of Maximum value</strong></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

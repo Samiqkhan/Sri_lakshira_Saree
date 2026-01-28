@@ -132,7 +132,7 @@ const SidebarContent: React.FC<{
             <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-sm">SS</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">Sri Lakshira</span>
+            <span className="text-xl font-bold text-gray-900">Sri Lakshira Silks</span>
           </div>
         </div>
         <nav className="mt-8 flex-1 px-2 space-y-1">

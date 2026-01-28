@@ -63,7 +63,7 @@ const Header: React.FC = () => {
               <span className="text-white font-bold">SS</span>
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-              Sri Lakshira
+              Sri Lakshira Silks
             </span>
           </Link>
 

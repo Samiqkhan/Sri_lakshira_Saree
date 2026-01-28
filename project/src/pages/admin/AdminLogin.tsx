@@ -44,7 +44,7 @@ const AdminLogin: React.FC = () => {
             Admin Portal
           </h2>
           <p className="mt-2 text-center text-sm text-gray-300">
-            Sign in to access the Sri Lakshira admin dashboard
+            Sign in to access the Sri Lakshira Silks admin dashboard
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-xl p-8">
