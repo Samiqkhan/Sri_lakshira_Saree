@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, X, UploadCloud, Star, Video, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, X, UploadCloud, Star, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productService } from '../../services/api'; 
 
@@ -12,7 +12,6 @@ interface Product {
   stock: number;
   status: 'active' | 'inactive';
   image: string;
-  videoUrl?: string; // Optional video URL
   createdAt: string;
   specifications?: Record<string, string>;
   isFeatured?: boolean;
@@ -23,7 +22,6 @@ interface ProductFormState extends Omit<Product, 'id' | 'createdAt'> {
   id?: string;
   createdAt?: string;
   imageFile?: File | null;
-  videoFile?: File | null;
 }
 
 const ProductFormModal: React.FC<{
@@ -33,7 +31,7 @@ const ProductFormModal: React.FC<{
   isSaving: boolean;
 }> = ({ product, onClose, onSave, isSaving }) => {
   const [formData, setFormData] = useState<ProductFormState>(
-    product ? { ...product, imageFile: null, videoFile: null } : {
+    product ? { ...product, imageFile: null } : {
       name: '',
       price: 0,
       category: 'soft-silk',
@@ -41,9 +39,7 @@ const ProductFormModal: React.FC<{
       stock: 0,
       status: 'active',
       image: '',
-      videoUrl: '',
       imageFile: null,
-      videoFile: null,
       isFeatured: false,
       colors: [],
       specifications: {
@@ -74,16 +70,6 @@ const ProductFormModal: React.FC<{
         ...prev, 
         image: URL.createObjectURL(file),
         imageFile: file 
-      }));
-    }
-  };
-
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setFormData(prev => ({ 
-        ...prev, 
-        videoFile: file 
       }));
     }
   };
@@ -240,24 +226,6 @@ const ProductFormModal: React.FC<{
             </div>
           </div>
 
-          {/* Video Upload (Optional) */}
-          <div>
-            <label className="block text-sm font-medium">Draping Video (Optional)</label>
-            {formData.videoUrl && !formData.videoFile && (
-               <p className="text-xs text-green-600 mt-1 flex items-center"><Video className="h-3 w-3 mr-1"/> Current video active</p>
-            )}
-            {formData.videoFile && (
-               <p className="text-xs text-blue-600 mt-1 flex items-center"><Video className="h-3 w-3 mr-1"/> New video selected: {formData.videoFile.name}</p>
-            )}
-            <div className="mt-1 flex items-center space-x-2">
-                <label className="cursor-pointer bg-gray-50 py-2 px-3 border border-gray-300 rounded-md text-sm hover:bg-gray-100 flex items-center">
-                    <Video className="h-4 w-4 mr-2 text-gray-500"/>
-                    {formData.videoUrl || formData.videoFile ? 'Change Video' : 'Upload Video'}
-                    <input type="file" className="hidden" accept="video/*" onChange={handleVideoChange} />
-                </label>
-            </div>
-          </div>
-
           {/* Specifications */}
           <div>
             <label className="block text-sm font-medium mb-2">Specifications</label>
@@ -333,21 +301,14 @@ const AdminProducts: React.FC = () => {
     try {
       setIsSaving(true);
       let imageUrl = formData.image;
-      let videoUrl = formData.videoUrl;
 
       // 1. Upload new image if selected
       if (formData.imageFile) {
         imageUrl = await productService.uploadImage(formData.imageFile);
       }
 
-      // 2. Upload new video if selected
-      if (formData.videoFile && productService.uploadVideo) {
-         videoUrl = await productService.uploadVideo(formData.videoFile);
-      }
-
-      const productPayload = { ...formData, image: imageUrl, videoUrl: videoUrl };
+      const productPayload = { ...formData, image: imageUrl };
       delete productPayload.imageFile; 
-      delete productPayload.videoFile;
 
       if (formData.id) {
         // Update

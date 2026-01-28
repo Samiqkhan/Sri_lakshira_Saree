@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-// Helper to get the full public URL for an image
+// Helper to get the full public URL for a product image
 // Handles both raw file paths and already complete URLs
 const getImageUrl = (path: string) => {
   if (!path) return '';
@@ -23,9 +23,9 @@ export const productService = {
     return data.map(item => ({
       ...item,
       image: item.image_url ? getImageUrl(item.image_url) : '',
-      videoUrl: item.video_url ? getImageUrl(item.video_url) : '',
-      isFeatured: item.is_featured, // Map DB snake_case to Frontend camelCase
-      colors: item.colors || [],    // Map colors array
+      // REMOVED videoUrl mapping
+      isFeatured: item.is_featured, 
+      colors: item.colors || [],    
       specifications: item.specifications || {}
     }));
   },
@@ -42,7 +42,7 @@ export const productService = {
     return { 
       ...data, 
       image: data.image_url ? getImageUrl(data.image_url) : '',
-      videoUrl: data.video_url ? getImageUrl(data.video_url) : '',
+      // REMOVED videoUrl mapping
       isFeatured: data.is_featured,
       colors: data.colors || [],
       specifications: data.specifications || {}
@@ -61,31 +61,16 @@ export const productService = {
 
     if (error) throw error;
     
-    // Return the path (we generate the full URL in getImageUrl)
     return filePath;
   },
 
-  // 4. Upload Product Video (Optional)
-  uploadVideo: async (file: File) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`;
+  // REMOVED uploadVideo function entirely
 
-    const { error } = await supabase.storage
-      .from('product-videos')
-      .upload(filePath, file);
-
-    if (error) throw error;
-    
-    return filePath;
-  },
-
-  // 5. Create Product
+  // 4. Create Product
   create: async (productData: any) => {
-    // Extract frontend fields
-    const { image, videoUrl, isFeatured, colors, ...dbData } = productData;
+    // Extract frontend fields (Removed videoUrl destructuring)
+    const { image, isFeatured, colors, ...dbData } = productData;
     
-    // Validate isFeatured is a strict boolean
     const isFeaturedBoolean = !!isFeatured; 
 
     const { data, error } = await supabase
@@ -93,9 +78,9 @@ export const productService = {
       .insert([{ 
         ...dbData, 
         image_url: image, 
-        video_url: videoUrl,
-        is_featured: isFeaturedBoolean, // Send strict boolean to DB
-        colors: colors || []          // Send colors array
+        // REMOVED video_url field
+        is_featured: isFeaturedBoolean, 
+        colors: colors || []          
       }])
       .select()
       .single();
@@ -104,17 +89,16 @@ export const productService = {
     return { 
         ...data, 
         image: data.image_url, 
-        videoUrl: data.video_url,
         isFeatured: data.is_featured,
         colors: data.colors 
     };
   },
 
-  // 6. Update Product
+  // 5. Update Product
   update: async (id: string, productData: any) => {
-    const { image, videoUrl, isFeatured, colors, ...dbData } = productData;
+    // Removed videoUrl destructuring
+    const { image, isFeatured, colors, ...dbData } = productData;
 
-    // Validate isFeatured is a strict boolean
     const isFeaturedBoolean = !!isFeatured;
 
     const { data, error } = await supabase
@@ -122,7 +106,7 @@ export const productService = {
       .update({ 
         ...dbData, 
         image_url: image, 
-        video_url: videoUrl,
+        // REMOVED video_url field
         is_featured: isFeaturedBoolean,
         colors: colors || []
       })
@@ -134,13 +118,12 @@ export const productService = {
     return { 
         ...data, 
         image: data.image_url, 
-        videoUrl: data.video_url,
         isFeatured: data.is_featured,
         colors: data.colors 
     };
   },
 
-  // 7. Delete Product
+  // 6. Delete Product
   delete: async (id: string) => {
     const { error } = await supabase
       .from('products')
@@ -202,7 +185,6 @@ export const orderService = {
 
     if (error) throw error;
     
-    // Get Public URL directly for proofs
     const { data } = supabase.storage.from('payment-proofs').getPublicUrl(filePath);
     return data.publicUrl;
   },
@@ -213,7 +195,7 @@ export const orderService = {
       .from('orders')
       .update({ 
         payment_proof: proofUrl,
-        status: 'processing', // Move to processing automatically
+        status: 'processing', 
         payment_status: 'paid' 
       })
       .eq('id', orderId);
