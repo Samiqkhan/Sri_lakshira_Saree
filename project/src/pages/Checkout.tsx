@@ -6,6 +6,17 @@ import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/api'; 
 import toast from 'react-hot-toast';
 
+// Complete list of Indian States and Union Territories
+const INDIAN_STATES = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", 
+  "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", 
+  "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", 
+  "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", 
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", 
+  "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", 
+  "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
+
 interface OrderDetails {
   email: string;
   firstName: string;
@@ -41,13 +52,22 @@ const Checkout: React.FC = () => {
   };
 
   // --- CALCULATIONS START ---
-  const deliveryFee = 100;
+  // Delivery Fee: ₹60 for Tamil Nadu, ₹100 for all other states
+  const deliveryFee = orderDetails.state === 'Tamil Nadu' ? 60 : 100;
+  
   const gstAmount = Math.round(state.total * 0.05); // 5% GST
   const total = state.total + gstAmount + deliveryFee;
   // --- CALCULATIONS END ---
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Ensure state is selected
+    if (!orderDetails.state) {
+      toast.error('Please select a State');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -205,12 +225,11 @@ const Checkout: React.FC = () => {
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
                       <option value="">Select State</option>
-                      <option value="Maharashtra">Maharashtra</option>
-                      <option value="Karnataka">Karnataka</option>
-                      <option value="Tamil Nadu">Tamil Nadu</option>
-                      <option value="Gujarat">Gujarat</option>
-                      <option value="West Bengal">West Bengal</option>
-                      {/* Add more states as needed */}
+                      {INDIAN_STATES.map((stateName) => (
+                        <option key={stateName} value={stateName}>
+                          {stateName}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="md:col-span-2">
@@ -296,7 +315,7 @@ const Checkout: React.FC = () => {
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-16 h-16 object-cover rounded-lg"
+                      className="w-16 h-16 object-cover rounded-lg bg-gray-100"
                     />
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
@@ -318,15 +337,18 @@ const Checkout: React.FC = () => {
                   <span className="text-gray-900">₹{state.total.toLocaleString()}</span>
                 </div>
                 
-                {/* Updated GST */}
                 <div className="flex justify-between">
                   <span className="text-gray-600">GST (5%)</span>
                   <span className="text-gray-900">₹{gstAmount.toLocaleString()}</span>
                 </div>
                 
-                {/* Updated Delivery Fee */}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Delivery Fee</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">
+                    Delivery Fee <br/>
+                    <span className="text-xs text-orange-500">
+                      (₹60 for TN, ₹100 for others)
+                    </span>
+                  </span>
                   <span className="text-gray-900">₹{deliveryFee.toLocaleString()}</span>
                 </div>
                 

@@ -1,77 +1,74 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { CartProvider } from './context/CartContext';
-import { AuthProvider } from './context/AuthContext';
-import { LanguageProvider } from './context/LanguageContext';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import About from './pages/About';
-import Policies from './pages/Policies'; // Import the new Policies page
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminPanel from './pages/admin/AdminPanel';
-import ProtectedRoute from './components/ProtectedRoute';
-import ScrollToTop from './components/ScrollToTop';
-import { Toaster } from 'react-hot-toast';
-import Payment from './pages/Payment';
+import { Link } from 'react-router-dom';
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
 
-function App() {
+const Footer: React.FC = () => {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <CartProvider>
-          <Router>
-            <ScrollToTop />
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
-              <Toaster position="top-right" />
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/*" element={<MainLayout />} />
-
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route
-                  path="/admin/*"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <AdminPanel />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
+    <footer className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          
+          {/* Brand Column */}
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">Sri Lakshira</h3>
+            <p className="text-gray-400 text-sm">
+              Weaving traditions into every thread. Bringing you the finest collection of handcrafted sarees from the heart of India.
+            </p>
+            <div className="flex space-x-4 pt-2">
+              <a href="#" className="text-gray-400 hover:text-orange-400"><Facebook className="h-5 w-5" /></a>
+              <a href="#" className="text-gray-400 hover:text-orange-400"><Instagram className="h-5 w-5" /></a>
+              <a href="#" className="text-gray-400 hover:text-orange-400"><Twitter className="h-5 w-5" /></a>
             </div>
-          </Router>
-        </CartProvider>
-      </AuthProvider>
-    </LanguageProvider>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link to="/" className="hover:text-orange-400">Home</Link></li>
+              <li><Link to="/products" className="hover:text-orange-400">Shop Collection</Link></li>
+              <li><Link to="/about" className="hover:text-orange-400">Our Story</Link></li>
+              <li><Link to="/cart" className="hover:text-orange-400">My Cart</Link></li>
+            </ul>
+          </div>
+
+          {/* Customer Service */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Customer Care</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link to="/policies" className="hover:text-orange-400">Shipping Policy</Link></li>
+              <li><Link to="/policies" className="hover:text-orange-400">Returns & Exchange</Link></li>
+              <li><Link to="/policies" className="hover:text-orange-400">Terms & Conditions</Link></li>
+              <li><Link to="/policies" className="hover:text-orange-400">Privacy Policy</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
+            <ul className="space-y-3 text-sm text-gray-400">
+              <li className="flex items-start">
+                <MapPin className="h-5 w-5 mr-2 text-orange-400 shrink-0" />
+                <span>123 Silk Street, Kancheepuram, Tamil Nadu - 631501</span>
+              </li>
+              <li className="flex items-center">
+                <Phone className="h-5 w-5 mr-2 text-orange-400 shrink-0" />
+                <span>+91 98765 43210</span>
+              </li>
+              <li className="flex items-center">
+                <Mail className="h-5 w-5 mr-2 text-orange-400 shrink-0" />
+                <span>support@srilakshira.com</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-500">
+          <p>© {new Date().getFullYear()} Sri Lakshira. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
   );
-}
+};
 
-// Main layout for public-facing pages
-const MainLayout = () => (
-  <>
-    <Header />
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/products" element={<Products />} />
-      <Route path="/product/:id" element={<ProductDetail />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/payment/:orderId" element={<Payment />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/policies" element={<Policies />} /> {/* Add the new route here */}
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
-    <Footer />
-  </>
-);
-
-export default App;
+export default Footer;
