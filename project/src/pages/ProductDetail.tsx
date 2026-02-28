@@ -56,7 +56,7 @@ const ProductDetail: React.FC = () => {
           description: 'Experience the elegance of traditional craftsmanship with this exquisite saree.',
           fabric: data.fabric,
           category: data.category,
-          colors: ['Red', 'Pink', 'Gold', 'Blue'], 
+          colors: data.colors && data.colors.length > 0 ? data.colors : [], 
           sizes: ['Free Size'],
           rating: 4.8,
           reviews: 124,
@@ -82,8 +82,13 @@ const ProductDetail: React.FC = () => {
   const displayVideoUrl = product?.videoUrl || DEFAULT_VIDEO_URL;
 
   const handleAddToCart = () => {
-    if (!product || !selectedColor || !selectedSize) {
-      toast.error('Please select color and size');
+    if (!product) return;
+    if (product.colors.length > 0 && !selectedColor) {
+      toast.error('Please select a color');
+      return;
+    }
+    if (product.sizes.length > 0 && !selectedSize) {
+      toast.error('Please select a size');
       return;
     }
     addItem({

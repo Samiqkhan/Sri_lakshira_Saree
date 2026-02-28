@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, X, UploadCloud, Star, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, UploadCloud, Star, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productService } from '../../services/api'; 
 
@@ -7,6 +7,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
   category: string;
   fabric: string;
   stock: number;
@@ -34,6 +35,7 @@ const ProductFormModal: React.FC<{
     product ? { ...product, imageFile: null } : {
       name: '',
       price: 0,
+      originalPrice: 0,
       category: 'soft-silk',
       fabric: '',
       stock: 0,
@@ -148,10 +150,14 @@ const ProductFormModal: React.FC<{
             <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border rounded-md p-2 mt-1" required />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium">Price</label>
+              <label className="block text-sm font-medium">Discounted Price</label>
               <input type="number" name="price" value={formData.price} onChange={handleChange} className="w-full border rounded-md p-2 mt-1" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Original Price</label>
+              <input type="number" name="originalPrice" value={formData.originalPrice || ''} onChange={handleChange} className="w-full border rounded-md p-2 mt-1" />
             </div>
             <div>
               <label className="block text-sm font-medium">Stock</label>

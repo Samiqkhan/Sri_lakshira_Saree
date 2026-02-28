@@ -62,6 +62,7 @@ const Products: React.FC = () => {
           id: item.id,
           name: item.name,
           price: Number(item.price),
+          originalPrice: item.originalPrice ? Number(item.originalPrice) : undefined,
           image: item.image,
           category: item.category,
           fabric: item.fabric,
@@ -221,8 +222,11 @@ const Products: React.FC = () => {
                         {[...Array(5)].map((_, i) => (<Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />))}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-baseline space-x-2">
                       <span className="text-lg font-bold text-orange-600">₹{product.price.toLocaleString()}</span>
+                      {product.originalPrice && (
+                        <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                      )}
                     </div>
                   </div>
                 </Link>

@@ -34,6 +34,7 @@ const Checkout: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     email: user?.email || '',
     firstName: '',
@@ -52,8 +53,13 @@ const Checkout: React.FC = () => {
   };
 
   // --- CALCULATIONS START ---
-  // Delivery Fee: ₹60 for Tamil Nadu, ₹100 for all other states
-  const deliveryFee = orderDetails.state === 'Tamil Nadu' ? 60 : 100;
+  // Delivery Fee: 
+  // Tamil Nadu: Free if >= 2000, else ₹50
+  // Other states: ₹100
+  let deliveryFee = 100;
+  if (orderDetails.state === 'Tamil Nadu') {
+    deliveryFee = Number(state.total) >= 2000 ? 0 : 50;
+  }
   
   const gstAmount = Math.round(state.total * 0.05); // 5% GST
   const total = state.total + gstAmount + deliveryFee;
@@ -65,6 +71,11 @@ const Checkout: React.FC = () => {
     // Ensure state is selected
     if (!orderDetails.state) {
       toast.error('Please select a State');
+      return;
+    }
+    
+    if (!acceptedTerms) {
+      toast.error('Please accept the Terms & Conditions and Exchange Policy');
       return;
     }
 
@@ -280,6 +291,28 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
 
+              {/* Terms and Conditions */}
+              <div className="flex items-start bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="flex items-center h-5 mt-0.5">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="focus:ring-orange-500 h-5 w-5 text-orange-600 border-gray-300 rounded cursor-pointer"
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label htmlFor="terms" className="font-medium text-gray-700 cursor-pointer">
+                    I agree to the <a href="/policies" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:text-orange-700 underline">Terms & Conditions</a> and <a href="/policies" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:text-orange-700 underline">Exchange Policy</a>.
+                  </label>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Exchanges are only applicable for defective/damaged products reported within 48 hours. No cash refunds.
+                  </p>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={isProcessing}
@@ -343,13 +376,15 @@ const Checkout: React.FC = () => {
                 </div>
                 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">
-                    Delivery Fee <br/>
-                    <span className="text-xs text-orange-500">
-                      (₹60 for TN, ₹100 for others)
+                  <span className="text-gray-600 flex flex-col">
+                    <span>Delivery Fee</span>
+                    <span className="text-xs text-orange-500 mt-1">
+                      (TN: ₹50 or Free &gt;₹2000, Others: ₹100)
                     </span>
                   </span>
-                  <span className="text-gray-900">₹{deliveryFee.toLocaleString()}</span>
+                  <span className="text-gray-900">
+                    {deliveryFee === 0 ? <span className="text-green-600 font-semibold">Free</span> : `₹${deliveryFee.toLocaleString()}`}
+                  </span>
                 </div>
                 
                 <div className="border-t border-gray-200 pt-3">

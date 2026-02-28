@@ -48,6 +48,7 @@ const Home: React.FC = () => {
           id: item.id,
           name: item.name,
           price: Number(item.price),
+          originalPrice: item.originalPrice ? Number(item.originalPrice) : undefined,
           image: item.image,
           category: item.category,
           fabric: item.fabric,
@@ -188,7 +189,12 @@ const Home: React.FC = () => {
                   <div className="p-6">
                     <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors truncate">{product.name}</h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
+                      <div className="flex items-baseline space-x-2">
+                        <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-gray-400 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                        )}
+                      </div>
                       <ArrowRight className="h-6 w-6 text-gray-400 group-hover:text-orange-600" />
                     </div>
                   </div>
@@ -227,8 +233,11 @@ const Home: React.FC = () => {
                   </div>
                   <div className="p-5 text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2 truncate group-hover:text-orange-600 transition-colors">{product.name}</h3>
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-baseline justify-center space-x-2">
                       <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">₹{product.price.toLocaleString()}</span>
+                      {product.originalPrice && (
+                        <span className="text-sm text-gray-400 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                      )}
                     </div>
                   </div>
                 </Link>

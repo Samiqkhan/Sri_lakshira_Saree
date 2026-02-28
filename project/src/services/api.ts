@@ -17,15 +17,16 @@ export const productService = {
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
-    
+
     return data.map(item => ({
       ...item,
       image: item.image_url ? getImageUrl(item.image_url) : '',
       // REMOVED videoUrl mapping
-      isFeatured: item.is_featured, 
-      colors: item.colors || [],    
+      isFeatured: item.is_featured,
+      originalPrice: item.original_price,
+      colors: item.colors || [],
       specifications: item.specifications || {}
     }));
   },
@@ -37,13 +38,14 @@ export const productService = {
       .select('*')
       .eq('id', id)
       .single();
-    
+
     if (error) throw error;
-    return { 
-      ...data, 
+    return {
+      ...data,
       image: data.image_url ? getImageUrl(data.image_url) : '',
       // REMOVED videoUrl mapping
       isFeatured: data.is_featured,
+      originalPrice: data.original_price,
       colors: data.colors || [],
       specifications: data.specifications || {}
     };
@@ -60,7 +62,7 @@ export const productService = {
       .upload(filePath, file);
 
     if (error) throw error;
-    
+
     return filePath;
   },
 
@@ -69,45 +71,48 @@ export const productService = {
   // 4. Create Product
   create: async (productData: any) => {
     // Extract frontend fields (Removed videoUrl destructuring)
-    const { image, isFeatured, colors, ...dbData } = productData;
-    
-    const isFeaturedBoolean = !!isFeatured; 
+    const { image, isFeatured, originalPrice, colors, ...dbData } = productData;
+
+    const isFeaturedBoolean = !!isFeatured;
 
     const { data, error } = await supabase
       .from('products')
-      .insert([{ 
-        ...dbData, 
-        image_url: image, 
+      .insert([{
+        ...dbData,
+        image_url: image,
         // REMOVED video_url field
-        is_featured: isFeaturedBoolean, 
-        colors: colors || []          
+        is_featured: isFeaturedBoolean,
+        original_price: originalPrice,
+        colors: colors || []
       }])
       .select()
       .single();
 
     if (error) throw error;
-    return { 
-        ...data, 
-        image: data.image_url, 
-        isFeatured: data.is_featured,
-        colors: data.colors 
+    return {
+      ...data,
+      image: data.image_url,
+      isFeatured: data.is_featured,
+      originalPrice: data.original_price,
+      colors: data.colors
     };
   },
 
   // 5. Update Product
   update: async (id: string, productData: any) => {
     // Removed videoUrl destructuring
-    const { image, isFeatured, colors, ...dbData } = productData;
+    const { image, isFeatured, originalPrice, colors, ...dbData } = productData;
 
     const isFeaturedBoolean = !!isFeatured;
 
     const { data, error } = await supabase
       .from('products')
-      .update({ 
-        ...dbData, 
-        image_url: image, 
+      .update({
+        ...dbData,
+        image_url: image,
         // REMOVED video_url field
         is_featured: isFeaturedBoolean,
+        original_price: originalPrice,
         colors: colors || []
       })
       .eq('id', id)
@@ -115,11 +120,12 @@ export const productService = {
       .single();
 
     if (error) throw error;
-    return { 
-        ...data, 
-        image: data.image_url, 
-        isFeatured: data.is_featured,
-        colors: data.colors 
+    return {
+      ...data,
+      image: data.image_url,
+      isFeatured: data.is_featured,
+      originalPrice: data.original_price,
+      colors: data.colors
     };
   },
 
@@ -144,7 +150,7 @@ export const orderService = {
       .insert([orderData])
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -155,7 +161,7 @@ export const orderService = {
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   },
@@ -168,7 +174,7 @@ export const orderService = {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -184,7 +190,7 @@ export const orderService = {
       .upload(filePath, file);
 
     if (error) throw error;
-    
+
     const { data } = supabase.storage.from('payment-proofs').getPublicUrl(filePath);
     return data.publicUrl;
   },
@@ -193,10 +199,10 @@ export const orderService = {
   addPaymentProof: async (orderId: string, proofUrl: string) => {
     const { error } = await supabase
       .from('orders')
-      .update({ 
+      .update({
         payment_proof: proofUrl,
-        status: 'processing', 
-        payment_status: 'paid' 
+        status: 'processing',
+        payment_status: 'paid'
       })
       .eq('id', orderId);
 
