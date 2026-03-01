@@ -10,8 +10,7 @@ import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
-import Login from './pages/Login';
-import Register from './pages/Register';
+
 import About from './pages/About';
 import Policies from './pages/Policies'; // Import the new Policies page
 import AdminLogin from './pages/admin/AdminLogin';
@@ -64,8 +63,7 @@ const MainLayout = () => (
       <Route path="/cart" element={<Cart />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/payment/:orderId" element={<Payment />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+
       <Route path="/about" element={<About />} />
       <Route path="/policies" element={<Policies />} /> {/* Add the new route here */}
       <Route path="*" element={<Navigate to="/" />} />

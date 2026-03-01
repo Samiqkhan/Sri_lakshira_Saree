@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Filter, Star, Heart, ChevronDown, X, Loader2 } from 'lucide-react';
+import { Filter, Star, ChevronDown, X, Loader2 } from 'lucide-react';
 import { productService } from '../services/api';
 
 interface Product {
@@ -43,7 +43,7 @@ const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGridView, setIsGridView] = useState(true);
+  const [isGridView] = useState(true);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
@@ -207,25 +207,25 @@ const Products: React.FC = () => {
           )}
 
           <div className="flex-1">
-            <div className={`grid gap-4 md:gap-6 ${isGridView ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+            <div className={`grid gap-4 md:gap-6 ${isGridView ? 'grid-cols-2 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
               {filteredProducts.map((product) => (
                 <Link key={product.id} to={`/product/${product.id}`} className={`group bg-white rounded-lg shadow hover:shadow-lg transition-all duration-300 overflow-hidden ${!isGridView ? 'flex' : ''}`}>
                   <div className={`relative overflow-hidden ${isGridView ? 'aspect-[3/4]' : 'w-48 h-auto'}`}>
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 bg-gray-100" />
+                    <img src={product.image} alt={product.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 bg-gray-100" />
                     {product.isNew && (<span className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">NEW</span>)}
                   </div>
                   <div className={`p-4 flex flex-col ${isGridView ? '' : 'flex-1 justify-center'}`}>
-                    <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors truncate">{product.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2 capitalize">{product.category.replace('-', ' ')}</p>
+                    <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2 md:truncate">{product.name}</h3>
+                    <p className="text-xs md:text-sm text-gray-600 mb-2 capitalize">{product.category.replace('-', ' ')}</p>
                     <div className="flex items-center mb-3">
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (<Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />))}
                       </div>
                     </div>
                     <div className="flex items-baseline space-x-2">
-                      <span className="text-lg font-bold text-orange-600">₹{product.price.toLocaleString()}</span>
+                      <span className="text-base md:text-lg font-bold text-orange-600">₹{product.price.toLocaleString()}</span>
                       {product.originalPrice && (
-                        <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                        <span className="text-xs md:text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
                       )}
                     </div>
                   </div>

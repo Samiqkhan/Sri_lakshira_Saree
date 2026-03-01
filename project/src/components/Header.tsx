@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, Search, Menu, X, Globe } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Globe } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const NavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ to, children, onClick }) => {
@@ -24,7 +23,6 @@ const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { state } = useCart();
-  const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
 
@@ -59,7 +57,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center" onClick={closeMenu}>
-            <img src="/images/logo.PNG" alt="Sri Lakshira Silks" className="h-12 w-12 object-cover rounded-full shadow-sm border border-orange-100" />
+            <img src="/images/logo.webp" alt="Sri Lakshira Silks" className="h-12 w-12 object-cover rounded-full shadow-sm border border-orange-100" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -102,34 +100,7 @@ const Header: React.FC = () => {
               )}
             </Link>
 
-            {/* User Menu */}
-            <div className="hidden md:block">
-              {user ? (
-                <div className="relative group">
-                  <button className="flex items-center space-x-1 p-2 text-gray-700 rounded-full hover:bg-gray-100 transition-colors">
-                    <User className="h-5 w-5" />
-                  </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                    <div className="py-1">
-                      <p className="px-4 py-2 text-sm text-gray-500">Welcome, {user.name}</p>
-                      <button
-                        onClick={logout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  to="/login"
-                  className="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700 transition-colors font-medium text-sm"
-                >
-                  {t('nav.login')}
-                </Link>
-              )}
-            </div>
+
 
             {/* Mobile Menu Button */}
             <button
@@ -184,39 +155,7 @@ const Header: React.FC = () => {
                 <NavLink to="/about" onClick={closeMenu}>{t('nav.about')}</NavLink>
               </nav>
             </div>
-            <div className="p-4 border-t">
-              {user ? (
-                <div className="space-y-2">
-                  <p className="text-gray-700">Welcome, {user.name}</p>
-                  <button
-                    onClick={() => {
-                      logout();
-                      closeMenu();
-                    }}
-                    className="w-full text-center bg-gray-200 text-gray-800 px-4 py-2 rounded-full font-medium"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Link
-                    to="/login"
-                    className="block text-center bg-gray-200 text-gray-800 px-4 py-2 rounded-full font-medium"
-                    onClick={closeMenu}
-                  >
-                    {t('nav.login')}
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="block text-center bg-orange-600 text-white px-4 py-2 rounded-full font-medium"
-                    onClick={closeMenu}
-                  >
-                    {t('nav.register')}
-                  </Link>
-                </div>
-              )}
-            </div>
+
           </div>
         </div>
       </div>

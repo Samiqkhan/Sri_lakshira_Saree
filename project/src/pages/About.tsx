@@ -36,8 +36,8 @@ const About: React.FC = () => {
         <div className="absolute inset-0 bg-black/40 z-10"></div>
         <div className="absolute inset-0">
           <img
-            src="https://images.pexels.com/photos/9558579/pexels-photo-9558579.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt="Artisans weaving a saree"
+            src="/images/hero-bg.webp"
+            alt="Beautiful traditional saree"
             className="w-full h-full object-cover"
           />
         </div>

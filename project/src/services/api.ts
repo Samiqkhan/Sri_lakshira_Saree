@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { convertToWebP } from '../utils/imageUtils';
 
 // Helper to get the full public URL for a product image
 // Handles both raw file paths and already complete URLs
@@ -53,13 +54,16 @@ export const productService = {
 
   // 3. Upload Product Image
   uploadImage: async (file: File) => {
-    const fileExt = file.name.split('.').pop();
+    // Convert original image to optimized WebP
+    const webpFile = await convertToWebP(file, 0.8);
+
+    const fileExt = webpFile.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `${fileName}`;
 
     const { error } = await supabase.storage
       .from('product-images')
-      .upload(filePath, file);
+      .upload(filePath, webpFile);
 
     if (error) throw error;
 
@@ -181,13 +185,16 @@ export const orderService = {
 
   // 4. Upload Payment Proof
   uploadProof: async (file: File) => {
-    const fileExt = file.name.split('.').pop();
+    // Convert original image to optimized WebP
+    const webpFile = await convertToWebP(file, 0.7); // Slightly more compressed for proofs
+
+    const fileExt = webpFile.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `${fileName}`;
 
     const { error } = await supabase.storage
       .from('payment-proofs')
-      .upload(filePath, file);
+      .upload(filePath, webpFile);
 
     if (error) throw error;
 
