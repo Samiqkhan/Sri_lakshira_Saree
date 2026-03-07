@@ -1,24 +1,29 @@
-import React from 'react';
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-
-import About from './pages/About';
-import Policies from './pages/Policies'; // Import the new Policies page
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminPanel from './pages/admin/AdminPanel';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import { Toaster } from 'react-hot-toast';
-import Payment from './pages/Payment';
+
+// Lazy load pages to reduce bundle size
+const Home = lazy(() => import('./pages/Home'));
+const Products = lazy(() => import('./pages/Products'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const About = lazy(() => import('./pages/About'));
+const Policies = lazy(() => import('./pages/Policies'));
+const Payment = lazy(() => import('./pages/Payment'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminPanel = lazy(() => import('./pages/admin/AdminPanel'));
+
+const LoadingFallback = () => (
+  <div className="h-1 bg-orange-500 animate-pulse w-full fixed top-0 z-[60]" />
+);
 
 function App() {
   return (
@@ -29,21 +34,20 @@ function App() {
             <ScrollToTop />
             <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
               <Toaster position="top-right" />
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/*" element={<MainLayout />} />
-
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route
-                  path="/admin/*"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <AdminPanel />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/*" element={<MainLayout />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route
+                    path="/admin/*"
+                    element={
+                      <ProtectedRoute adminOnly>
+                        <AdminPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </Suspense>
             </div>
           </Router>
         </CartProvider>
@@ -52,7 +56,6 @@ function App() {
   );
 }
 
-// Main layout for public-facing pages
 const MainLayout = () => (
   <>
     <Header />
@@ -63,9 +66,8 @@ const MainLayout = () => (
       <Route path="/cart" element={<Cart />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/payment/:orderId" element={<Payment />} />
-
       <Route path="/about" element={<About />} />
-      <Route path="/policies" element={<Policies />} /> {/* Add the new route here */}
+      <Route path="/policies" element={<Policies />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
     <Footer />
