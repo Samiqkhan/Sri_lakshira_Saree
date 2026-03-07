@@ -314,41 +314,61 @@ const Home: React.FC = () => {
             <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-4">Customer Reviews</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">What our clients say about us</p>
           </div>
-          <div 
-            ref={reviewsContainerRef}
-            onScroll={handleReviewScroll}
-            className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:snap-none hide-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-4 md:px-0 scroll-smooth"
-          >
-            {[
-              { name: "Priya Sharma", role: "Regular Customer", review: "The quality of the silk is absolutely premium! I've bought three sarees and each one is a masterpiece.", rating: 5 },
-              { name: "Anita Reddy", role: "Wedding Shopper", review: "Wore their Kancheepuram silk for my sister's wedding. Everyone kept asking where I got it from. Highly recommended!", rating: 5 },
-              { name: "Meera Patel", role: "First-time Buyer", review: "Fast delivery and the saree looks exactly like the pictures. The fabric feels amazing and authentic.", rating: 4 }
-            ].map((testimonial, idx) => (
-              <div 
-                key={idx} 
-                className={`min-w-[85vw] sm:min-w-[400px] md:min-w-0 snap-center shrink-0 bg-white p-8 rounded-3xl shadow-lg transition-transform duration-500 ease-out flex flex-col justify-between ${
-                  activeReviewIndex === idx ? 'scale-100 opacity-100 shadow-xl' : 'scale-90 opacity-70 md:scale-100 md:opacity-100 md:shadow-lg'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center mb-4 space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-6 italic">"{testimonial.review}"</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4 shadow-md">
-                    {testimonial.name.charAt(0)}
-                  </div>
+          <div className="relative max-w-lg md:max-w-none mx-auto">
+            <div 
+              ref={reviewsContainerRef}
+              onScroll={handleReviewScroll}
+              className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 md:grid md:grid-cols-3 md:overflow-visible md:snap-none hide-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
+              style={{
+                scrollPaddingLeft: '50%',
+                scrollPaddingRight: '50%'
+              }}
+            >
+              {[
+                { name: "Priya Sharma", role: "Regular Customer", review: "The quality of the silk is absolutely premium! I've bought three sarees and each one is a masterpiece.", rating: 5 },
+                { name: "Anita Reddy", role: "Wedding Shopper", review: "Wore their Kancheepuram silk for my sister's wedding. Everyone kept asking where I got it from. Highly recommended!", rating: 5 },
+                { name: "Meera Patel", role: "First-time Buyer", review: "Fast delivery and the saree looks exactly like the pictures. The fabric feels amazing and authentic.", rating: 4 }
+              ].map((testimonial, idx) => (
+                <div 
+                  key={idx} 
+                  className={`w-[85%] md:w-auto shrink-0 snap-center bg-white p-6 md:p-8 rounded-3xl transition-all duration-500 ease-out flex flex-col justify-between mx-auto ${
+                    activeReviewIndex === idx 
+                      ? 'scale-100 opacity-100 shadow-[0_20px_50px_rgba(8,_112,_184,_0.07)] md:shadow-lg' 
+                      : 'scale-[0.85] opacity-50 md:scale-100 md:opacity-100 md:shadow-lg'
+                  }`}
+                >
                   <div>
-                    <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    <div className="flex items-center mb-4 space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-4 w-4 md:h-5 md:w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                    <p className="text-gray-700 mb-6 italic text-sm md:text-base">"{testimonial.review}"</p>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg md:text-xl mr-3 md:mr-4 shadow-md shrink-0">
+                      {testimonial.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-sm md:text-base">{testimonial.name}</h4>
+                      <p className="text-xs md:text-sm text-gray-500">{testimonial.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            
+            {/* Mobile Indicators */}
+            <div className="flex justify-center mt-4 space-x-2 md:hidden">
+              {[0, 1, 2].map((idx) => (
+                <div 
+                  key={idx}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    activeReviewIndex === idx ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500' : 'w-2 bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
