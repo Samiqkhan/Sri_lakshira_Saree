@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Building, Loader2 } from 'lucide-react';
+import { ArrowRight, Star, Building, Loader2, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { productService } from '../services/api';
 
@@ -27,33 +27,63 @@ const Home: React.FC = () => {
   const [activeReviewIndex, setActiveReviewIndex] = useState(0);
   const reviewsContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleReviewScroll = () => {
+  const scrollReviews = (direction: 'left' | 'right') => {
     if (!reviewsContainerRef.current) return;
-    if (window.innerWidth >= 768) {
-      if (activeReviewIndex !== 0) setActiveReviewIndex(0);
-      return; 
-    }
-
     const container = reviewsContainerRef.current;
-    let closestIndex = 0;
-    let minDistance = Infinity;
-    const viewportCenter = window.innerWidth / 2;
+    
+    // Calculate the next index
+    let nextIndex = activeReviewIndex + (direction === 'left' ? -1 : 1);
+    
+    // Bounds checking
+    if (nextIndex < 0) nextIndex = 0;
+    if (nextIndex > 2) nextIndex = 2; // We currently have exactly 3 reviews
 
-    Array.from(container.children).forEach((child, index) => {
-      const rect = (child as HTMLElement).getBoundingClientRect();
-      const childCenter = rect.left + rect.width / 2;
-      const distance = Math.abs(childCenter - viewportCenter);
+    const targetCard = container.querySelector(`[data-index="${nextIndex}"]`) as HTMLElement;
+    
+    if (targetCard) {
+      // Calculate exactly where this card sits in the container
+      // offsetLeft gives exactly how far it is from the left edge of the scrolling container
+      // We subtract the padding (which is dynamically calculated as the gap from the edge to the center)
+      // to perfectly align the left edge of the card with the start of the visible padding area
       
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestIndex = index;
-      }
-    });
-
-    if (activeReviewIndex !== closestIndex) {
-      setActiveReviewIndex(closestIndex);
+      // Calculate padding from the CSS: max(1rem, calc(50vw - 42.5vw))
+      const remBase = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const paddingLeft = Math.max(remBase, (window.innerWidth * 0.5) - (window.innerWidth * 0.425));
+      
+      container.scrollTo({
+        left: targetCard.offsetLeft - paddingLeft,
+        behavior: 'smooth'
+      });
+      
+      // Optically update the active index immediately instead of waiting for IntersectionObserver
+      setActiveReviewIndex(nextIndex);
     }
   };
+
+  useEffect(() => {
+    const container = reviewsContainerRef.current;
+    if (!container || window.innerWidth >= 768) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute('data-index'));
+            setActiveReviewIndex(index);
+          }
+        });
+      },
+      {
+        root: container,
+        threshold: 0.6,
+      }
+    );
+
+    const children = Array.from(container.children);
+    children.forEach((child) => observer.observe(child));
+
+    return () => observer.disconnect();
+  }, []);
 
   const heroImages = [
     '/images/hero-bg.webp',
@@ -308,67 +338,96 @@ const Home: React.FC = () => {
       </section>
 
       {/* Reviews Section */}
-      <section className="py-16 bg-gray-50">
+      {/* Reviews Section */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-4">Customer Reviews</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">What our clients say about us</p>
+          <div className="text-center mb-16">
+            <span className="text-orange-600 font-bold tracking-widest uppercase text-sm">Testimonials</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mt-2 mb-4">
+              Loved by Saree Enthusiasts
+            </h2>
+            <div className="h-1.5 w-24 bg-gradient-to-r from-orange-500 to-pink-500 mx-auto rounded-full"></div>
           </div>
-          <div className="relative max-w-lg md:max-w-none mx-auto">
+
+          <div className="relative group">
+            {/* Desktop Navigation Arrows (Visible on Hover) */}
+            <button 
+              onClick={() => scrollReviews('left')}
+              className="hidden md:flex absolute -left-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white shadow-xl text-gray-800 hover:text-orange-600 transition-all opacity-0 group-hover:opacity-100"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button 
+              onClick={() => scrollReviews('right')}
+              className="hidden md:flex absolute -right-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white shadow-xl text-gray-800 hover:text-orange-600 transition-all opacity-0 group-hover:opacity-100"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+
             <div 
               ref={reviewsContainerRef}
-              onScroll={handleReviewScroll}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 md:grid md:grid-cols-3 md:overflow-visible md:snap-none hide-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
-              style={{
-                scrollPaddingLeft: '50%',
-                scrollPaddingRight: '50%'
-              }}
+              className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-10 hide-scrollbar scroll-smooth px-2"
             >
               {[
                 { name: "Priya Sharma", role: "Regular Customer", review: "The quality of the silk is absolutely premium! I've bought three sarees and each one is a masterpiece.", rating: 5 },
                 { name: "Anita Reddy", role: "Wedding Shopper", review: "Wore their Kancheepuram silk for my sister's wedding. Everyone kept asking where I got it from. Highly recommended!", rating: 5 },
-                { name: "Meera Patel", role: "First-time Buyer", review: "Fast delivery and the saree looks exactly like the pictures. The fabric feels amazing and authentic.", rating: 4 }
+                { name: "Meera Patel", role: "First-time Buyer", review: "Fast delivery and the saree looks exactly like the pictures. The fabric feels amazing and authentic.", rating: 5 }
               ].map((testimonial, idx) => (
                 <div 
                   key={idx} 
-                  className={`w-[85%] md:w-auto shrink-0 snap-center bg-white p-6 md:p-8 rounded-3xl transition-all duration-500 ease-out flex flex-col justify-between mx-auto ${
-                    activeReviewIndex === idx 
-                      ? 'scale-100 opacity-100 shadow-[0_20px_50px_rgba(8,_112,_184,_0.07)] md:shadow-lg' 
-                      : 'scale-[0.85] opacity-50 md:scale-100 md:opacity-100 md:shadow-lg'
-                  }`}
+                  data-index={idx}
+                  className="w-[85vw] md:w-[calc(33.333%-1rem)] shrink-0 snap-center bg-white p-8 rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 flex flex-col justify-between hover:border-orange-200 transition-colors"
                 >
                   <div>
-                    <div className="flex items-center mb-4 space-x-1">
+                    <div className="flex items-center mb-6">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`h-4 w-4 md:h-5 md:w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                        <Star 
+                          key={i} 
+                          className={`h-4 w-4 ${i < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-200'}`} 
+                        />
                       ))}
                     </div>
-                    <p className="text-gray-700 mb-6 italic text-sm md:text-base">"{testimonial.review}"</p>
+                    
+                    <div className="relative">
+                      <Quote className="absolute -top-2 -left-2 h-8 w-8 text-orange-50 opacity-10" />
+                      <p className="text-gray-600 leading-relaxed text-lg italic relative z-10">
+                        "{testimonial.review}"
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg md:text-xl mr-3 md:mr-4 shadow-md shrink-0">
+
+                  <div className="flex items-center mt-8 pt-6 border-t border-gray-50">
+                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-700 font-bold text-lg mr-4 border-2 border-white shadow-sm">
                       {testimonial.name.charAt(0)}
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 text-sm md:text-base">{testimonial.name}</h4>
-                      <p className="text-xs md:text-sm text-gray-500">{testimonial.role}</p>
+                      <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
+                      <p className="text-xs font-medium text-orange-600 uppercase tracking-wider">{testimonial.role}</p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            
-            {/* Mobile Indicators */}
-            <div className="flex justify-center mt-4 space-x-2 md:hidden">
-              {[0, 1, 2].map((idx) => (
-                <div 
-                  key={idx}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    activeReviewIndex === idx ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500' : 'w-2 bg-gray-300'
-                  }`}
-                />
-              ))}
-            </div>
+          </div>
+
+          {/* Indicators for both Mobile and Desktop */}
+          <div className="flex justify-center space-x-2 mt-4">
+            {[0, 1, 2].map((idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  const container = reviewsContainerRef.current;
+                  if (container) {
+                    const card = container.children[idx] as HTMLElement;
+                    container.scrollTo({ left: card.offsetLeft - 24, behavior: 'smooth' });
+                  }
+                }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  activeReviewIndex === idx ? 'w-8 bg-orange-500' : 'w-2 bg-gray-300 hover:bg-gray-400'
+                }`}
+                aria-label={`Go to review ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
       </section>
