@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Building, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -24,6 +24,36 @@ const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeReviewIndex, setActiveReviewIndex] = useState(0);
+  const reviewsContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleReviewScroll = () => {
+    if (!reviewsContainerRef.current) return;
+    if (window.innerWidth >= 768) {
+      if (activeReviewIndex !== 0) setActiveReviewIndex(0);
+      return; 
+    }
+
+    const container = reviewsContainerRef.current;
+    let closestIndex = 0;
+    let minDistance = Infinity;
+    const viewportCenter = window.innerWidth / 2;
+
+    Array.from(container.children).forEach((child, index) => {
+      const rect = (child as HTMLElement).getBoundingClientRect();
+      const childCenter = rect.left + rect.width / 2;
+      const distance = Math.abs(childCenter - viewportCenter);
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    if (activeReviewIndex !== closestIndex) {
+      setActiveReviewIndex(closestIndex);
+    }
+  };
 
   const heroImages = [
     '/images/hero-bg.webp',
@@ -284,19 +314,30 @@ const Home: React.FC = () => {
             <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-4">Customer Reviews</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">What our clients say about us</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div 
+            ref={reviewsContainerRef}
+            onScroll={handleReviewScroll}
+            className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:snap-none hide-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-4 md:px-0 scroll-smooth"
+          >
             {[
               { name: "Priya Sharma", role: "Regular Customer", review: "The quality of the silk is absolutely premium! I've bought three sarees and each one is a masterpiece.", rating: 5 },
               { name: "Anita Reddy", role: "Wedding Shopper", review: "Wore their Kancheepuram silk for my sister's wedding. Everyone kept asking where I got it from. Highly recommended!", rating: 5 },
               { name: "Meera Patel", role: "First-time Buyer", review: "Fast delivery and the saree looks exactly like the pictures. The fabric feels amazing and authentic.", rating: 4 }
             ].map((testimonial, idx) => (
-              <div key={idx} className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center mb-4 space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
-                  ))}
+              <div 
+                key={idx} 
+                className={`min-w-[85vw] sm:min-w-[400px] md:min-w-0 snap-center shrink-0 bg-white p-8 rounded-3xl shadow-lg transition-transform duration-500 ease-out flex flex-col justify-between ${
+                  activeReviewIndex === idx ? 'scale-100 opacity-100 shadow-xl' : 'scale-90 opacity-70 md:scale-100 md:opacity-100 md:shadow-lg'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center mb-4 space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 mb-6 italic">"{testimonial.review}"</p>
                 </div>
-                <p className="text-gray-700 mb-6 italic">"{testimonial.review}"</p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4 shadow-md">
                     {testimonial.name.charAt(0)}
