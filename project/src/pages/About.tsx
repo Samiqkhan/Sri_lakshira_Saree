@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import { Building, Target, Users, Heart, Facebook, Instagram, Youtube } from 'lucide-react';
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -7,7 +7,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const About: React.FC = () => {
+const About: FC = () => {
   // const teamMembers = [
   //   {
   //     name: 'Balaji ',

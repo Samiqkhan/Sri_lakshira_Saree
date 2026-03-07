@@ -65,60 +65,56 @@ const Checkout: React.FC = () => {
   const total = state.total + gstAmount + deliveryFee;
   // --- CALCULATIONS END ---
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Ensure state is selected
-    if (!orderDetails.state) {
-      toast.error('Please select a State');
-      return;
-    }
-    
-    if (!acceptedTerms) {
-      toast.error('Please accept the Terms & Conditions and Exchange Policy');
-      return;
-    }
-
-    setIsProcessing(true);
-
-    try {
-      // 1. Prepare data
-      const orderPayload = {
-        customer_name: `${orderDetails.firstName} ${orderDetails.lastName}`,
-        email: orderDetails.email,
-        phone: orderDetails.phone,
-        shipping_address: {
-          address: orderDetails.address,
-          city: orderDetails.city,
-          state: orderDetails.state,
-          pincode: orderDetails.pincode
-        },
-        items: state.items,
-        total_amount: total,
-        status: 'pending',     // Initial status
-        payment_status: 'pending' // Waiting for upload
-      };
-
-      // 2. Create Order in Supabase
-      const newOrder = await orderService.create(orderPayload);
-      
-      // 3. Redirect to Payment Page with Order ID
-      toast.success('Order created! Please complete payment.');
-      navigate(`/payment/${newOrder.id}`);
-      
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to place order.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  if (state.items.length === 0) {
-    navigate('/cart');
-    return null;
+  // ... existing imports
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!orderDetails.state) {
+    toast.error('Please select a State');
+    return;
+  }
+  
+  if (!acceptedTerms) {
+    toast.error('Please accept the Terms & Conditions and Exchange Policy');
+    return;
   }
 
+  setIsProcessing(true);
+
+  try {
+    const orderPayload = {
+      customer_name: `${orderDetails.firstName} ${orderDetails.lastName}`,
+      email: orderDetails.email,
+      phone: orderDetails.phone,
+      shipping_address: {
+        address: orderDetails.address,
+        city: orderDetails.city,
+        state: orderDetails.state,
+        pincode: orderDetails.pincode
+      },
+      items: state.items,
+      total_amount: total,
+      status: 'pending',
+      payment_status: 'pending'
+    };
+
+    const newOrder = await orderService.create(orderPayload);
+    
+    toast.success('Order created! Please complete payment.');
+    
+    // UPDATED: Pass the total amount in the navigation state
+    navigate(`/payment/${newOrder.id}`, { 
+      state: { totalAmount: total } 
+    });
+    
+  } catch (error) {
+    console.error(error);
+    toast.error('Failed to place order.');
+  } finally {
+    setIsProcessing(false);
+  }
+};
+// ... rest of file
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -112,13 +112,6 @@ const AdminLogin: React.FC = () => {
               </button>
             </div>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 font-medium">Demo Admin Credentials:</p>
-              <p className="text-sm text-gray-700 mt-1">
-                Email: srilakshira@gmail.com<br />
-                Password: admin123
-              </p>
-            </div>
           </form>
         </div>
       </div>

@@ -70,8 +70,28 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-500">
+        <div className="border-t border-gray-800 mt-12 pt-8 pb-4 space-y-4 text-center text-sm text-gray-500">
           <p>© {new Date().getFullYear()} Sri Lakshira Silks. All rights reserved.</p>
+          {/* Credit */}
+          <div className="flex justify-center">
+            <div className="text-gray-400 text-sm">
+              Developed by{" "}
+              <a
+                href="https://portfolio-samiq-khan.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-opacity hover:opacity-80 inline-flex items-center"
+              >
+                <span className="font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+                  Samiq
+                </span>
+                <span className="relative flex h-2 w-2 ml-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+                </span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
