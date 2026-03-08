@@ -53,7 +53,7 @@ const AdminOrders: React.FC = () => {
           total: order.total_amount,
           status: order.status,
           paymentStatus: order.payment_status || 'pending',
-          paymentProof: order.payment_proof, // Map from DB
+          paymentProof: order.payment_proof_url, // Map from DB
           createdAt: new Date(order.created_at).toLocaleDateString()
         };
       });
@@ -73,7 +73,7 @@ const AdminOrders: React.FC = () => {
       setOrders(prev => prev.map(o => o.fullId === fullId ? { ...o, status: newStatus as any } : o));
       
       // API Call
-      await orderService.updateStatus(fullId, newStatus);
+      await orderService.update(fullId, { status: newStatus });
       toast.success(`Order status updated to ${newStatus}`);
     } catch (error) {
       toast.error('Failed to update status');
@@ -213,14 +213,28 @@ const AdminOrders: React.FC = () => {
                   {/* Payment Proof Column */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     {order.paymentProof ? (
-                      <a 
-                        href={order.paymentProof} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline text-sm flex items-center font-medium"
-                      >
-                        <Eye className="h-4 w-4 mr-1" /> View Proof
-                      </a>
+                      <div className="flex items-center space-x-3">
+                        <a 
+                          href={order.paymentProof} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="block relative overflow-hidden rounded-md border border-gray-200 hover:border-orange-500 transition-colors"
+                        >
+                          <img 
+                            src={order.paymentProof} 
+                            alt="Proof" 
+                            className="w-12 h-12 object-cover"
+                          />
+                        </a>
+                        <a 
+                          href={order.paymentProof} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 hover:underline text-xs flex items-center font-medium"
+                        >
+                          <Eye className="h-3 w-3 mr-1" /> View Full
+                        </a>
+                      </div>
                     ) : (
                       <span className="text-gray-400 text-xs italic">No proof</span>
                     )}

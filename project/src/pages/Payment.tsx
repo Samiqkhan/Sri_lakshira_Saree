@@ -100,7 +100,7 @@ const Payment: React.FC = () => {
 
           <div className="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full">
             <span className="font-mono font-medium text-gray-700">
-              srilakshira@upi
+              9361983337@iob
             </span>
             <button
               onClick={handleCopyUPI}
