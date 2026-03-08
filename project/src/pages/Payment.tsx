@@ -46,12 +46,16 @@ const Payment: React.FC = () => {
 
     try {
       setIsUploading(true);
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      const response = await fetch("/api/upload", { method: "POST", body: formData });
-      const { url: proofUrl } = await response.json();
-      // Update the order with payment proof
-      await orderService.create({ orderId, paymentProofUrl: proofUrl });
+      
+      // 1. Upload the image directly to Supabase
+      const proofUrl = await orderService.uploadPaymentProof(selectedFile);
+      
+      // 2. Update the existing order with the returned payment proof URL and switch status
+      await orderService.update(orderId, {
+        payment_proof_url: proofUrl,
+        payment_status: 'under_review'
+      });
+      
       clearCart();
       toast.success("Payment proof submitted successfully!");
       navigate("/");
@@ -64,7 +68,7 @@ const Payment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">Complete Payment</h2>

@@ -30,7 +30,7 @@ const About: FC = () => {
   // ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-black/40 z-10"></div>
@@ -84,7 +84,7 @@ was born from a desire to celebrate the rich heritage of Indian textiles. We sta
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg">
             <img
-              src="/images/about.png"
+              src="/images/about1.jpg"
               alt="Close-up of a colorful saree"
               className="w-full h-full object-cover"
             />

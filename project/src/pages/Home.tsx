@@ -184,26 +184,26 @@ const Home: React.FC = () => {
       </section>
 
       {/* Marquee Section */}
-      <section className="bg-white py-3 border-b border-gray-200 overflow-hidden">
+      <section className="py-3 border-b border-pink-200 overflow-hidden">
         <div className="flex animate-marquee whitespace-nowrap">
           <span className="text-gray-700 text-sm mx-6">✨ Free Shipping on Orders Above ₹2000</span>
-          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-400 mx-6">❖</span>
           <span className="text-gray-700 text-sm mx-6">🎉 New Collection: Banarasi Silk Sarees</span>
-          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-400 mx-6">❖</span>
           <span className="text-gray-700 text-sm mx-6">💎 Premium Quality Guaranteed</span>
-          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-400 mx-6">❖</span>
           <span className="text-gray-700 text-sm mx-6">🚚 Express Delivery Available</span>
-          <span className="text-gray-300 mx-6">❖</span>
+          <span className="text-gray-400 mx-6">❖</span>
           <span className="text-gray-700 text-sm mx-6">⭐ Rated 4.8/5 by 10,000+ Customers</span>
         </div>
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-4">Shop by Category</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Discover our exquisite collection</p>
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto">Discover our exquisite collection</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {categories.map((category, index) => (
@@ -225,7 +225,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Featured Collection</h2>
@@ -270,11 +270,11 @@ const Home: React.FC = () => {
       </section>
 
       {/* New Arrivals Section */}
-      <section className="py-16 bg-orange-50/50">
+      <section className="py-16 bg-white/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">New Arrivals</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Fresh from our artisan partners</p>
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto">Fresh from our artisan partners</p>
           </div>
           
           {newArrivals.length > 0 ? (
@@ -317,7 +317,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
              <div className="rounded-2xl overflow-hidden shadow-lg">
@@ -328,7 +328,7 @@ const Home: React.FC = () => {
                  <Building className="h-10 w-10 text-orange-600 mr-4" />
                  <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">About Sri Lakshira Silks</h2>
                </div>
-               <p className="text-gray-700 leading-relaxed text-lg">Founded in 2024, Sri Lakshira Silks was born from a desire to celebrate the rich heritage of Indian textiles.</p>
+               <p className="text-gray-800 leading-relaxed text-lg">Founded in 2024, Sri Lakshira Silks was born from a desire to celebrate the rich heritage of Indian textiles.</p>
                <Link to="/about" className="inline-flex items-center text-orange-600 font-bold text-lg hover:text-orange-700 transition-colors group">
                  Read Our Full Story <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1" />
                </Link>
@@ -339,7 +339,7 @@ const Home: React.FC = () => {
 
       {/* Reviews Section */}
       {/* Reviews Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-20 bg-white/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <span className="text-orange-600 font-bold tracking-widest uppercase text-sm">Testimonials</span>

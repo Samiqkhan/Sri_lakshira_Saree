@@ -6,7 +6,7 @@ let productCache: any[] | null = null;
 
 const getImageUrl = (path: string) => {
   if (!path) return '';
-  if (path.startsWith('http')) return path; 
+  if (path.startsWith('http')) return path;
   const { data } = supabase.storage.from('product-images').getPublicUrl(path);
   return data.publicUrl;
 };
@@ -90,13 +90,47 @@ export const productService = {
 
     if (error) throw error;
     productCache = null; // Reset cache so the new product shows up
-    return data;
+    return {
+      ...data,
+      image: data.image_url ? getImageUrl(data.image_url) : '',
+      isFeatured: data.is_featured,
+      originalPrice: data.original_price,
+      colors: data.colors || [],
+      specifications: data.specifications || {}
+    };
+  },
+
+  update: async (id: string, productData: any) => {
+    const { image, isFeatured, originalPrice, colors, id: _id, createdAt, created_at, ...dbData } = productData;
+    const { data, error } = await supabase
+      .from('products')
+      .update({
+        ...dbData,
+        image_url: image,
+        is_featured: !!isFeatured,
+        original_price: originalPrice,
+        colors: colors || []
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    productCache = null;
+    return {
+      ...data,
+      image: data.image_url ? getImageUrl(data.image_url) : '',
+      isFeatured: data.is_featured,
+      originalPrice: data.original_price,
+      colors: data.colors || [],
+      specifications: data.specifications || {}
+    };
   },
 
   delete: async (id: string) => {
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) throw error;
-    productCache = null; 
+    productCache = null;
     return true;
   }
 };
@@ -107,6 +141,32 @@ export const orderService = {
     if (error) throw error;
     return data;
   },
+
+  update: async (id: string, updates: any) => {
+    const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  uploadPaymentProof: async (file: File) => {
+    // Compress and convert to WebP before upload
+    const webpFile = await convertToWebP(file, 0.8);
+    const fileName = `${crypto.randomUUID()}-proof.webp`;
+
+    const { error } = await supabase.storage
+      .from('payment-proofs')
+      .upload(fileName, webpFile, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // Get the public URL
+    const { data } = supabase.storage.from('payment-proofs').getPublicUrl(fileName);
+    return data.publicUrl;
+  },
+
   getAll: async () => {
     const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
     if (error) throw error;
