@@ -92,7 +92,7 @@ const Payment: React.FC = () => {
         <div className="flex flex-col items-center space-y-4 border-b pb-6">
           <div className="p-4 bg-white border-2 border-orange-500 rounded-lg shadow-sm">
             <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=srilakshira@upi&pn=SriLakshira&am=${totalAmount}&cu=INR`}
+              src="/images/QR.jpeg"
               alt="Payment QR Code"
               className="w-48 h-48 object-contain"
             />
