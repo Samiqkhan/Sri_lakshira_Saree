@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Star, Heart, Share2, Truck, Shield, RotateCcw, Plus, Minus, PlayCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Star, Heart, Share2, Truck, Shield, RotateCcw, Plus, Minus, Loader2, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { productService } from '../services/api';
 import toast from 'react-hot-toast';
 
-// --- CONFIG: SET YOUR SAMPLE VIDEO URL HERE ---
-const DEFAULT_VIDEO_URL = "/images/drapping.mp4"; 
 
 interface Product {
   id: string;
@@ -23,7 +21,6 @@ interface Product {
   rating: number;
   reviews: number;
   specifications: Record<string, string>;
-  videoUrl?: string; 
 }
 
 const ProductDetail: React.FC = () => {
@@ -60,8 +57,7 @@ const ProductDetail: React.FC = () => {
           sizes: ['Free Size'],
           rating: 4.8,
           reviews: 124,
-          specifications: data.specifications || {},
-          videoUrl: data.videoUrl // Get video from DB
+          specifications: data.specifications || {}
         };
 
         setProduct(formattedProduct);
@@ -78,8 +74,6 @@ const ProductDetail: React.FC = () => {
     fetchProduct();
   }, [id]);
 
-  // Use specific video if available, otherwise use default
-  const displayVideoUrl = product?.videoUrl || DEFAULT_VIDEO_URL;
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -225,7 +219,7 @@ const ProductDetail: React.FC = () => {
                 <p className="text-xs text-orange-800 leading-relaxed">
                     Exchanges are applicable <strong>only for defective or damaged products</strong>. 
                     If your order arrives damaged, please contact us via WhatsApp at 
-                    <strong className="whitespace-nowrap"> +91 98765 43210</strong> within 
+                    <strong className="whitespace-nowrap"> +91 93619 83337</strong> within 
                     <strong> 48 hours</strong> of delivery.
                 </p>
             </div>
@@ -233,8 +227,8 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Specs & Video */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16">
+        {/* Specs */}
+        <div className="mt-16">
            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Specifications</h3>
               <div className="space-y-3">
@@ -246,25 +240,6 @@ const ProductDetail: React.FC = () => {
                 ))}
               </div>
            </div>
-
-           {/* Video Section */}
-           {displayVideoUrl && (
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center mb-4">
-                  <PlayCircle className="h-6 w-6 text-orange-600 mr-3" />
-                  <h3 className="text-xl font-bold text-gray-900">Draping Tutorial</h3>
-                </div>
-                <div className="aspect-video rounded-lg overflow-hidden bg-black">
-                   <iframe
-                      src={displayVideoUrl}
-                      title="Draping Tutorial"
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                   ></iframe>
-                </div>
-             </div>
-           )}
         </div>
 
       </div>
