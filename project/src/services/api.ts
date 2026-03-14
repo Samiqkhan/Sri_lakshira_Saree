@@ -11,6 +11,28 @@ const getImageUrl = (path: string) => {
   return data.publicUrl;
 };
 
+// Parse pipe-separated image paths from image_url field
+const parseImagePaths = (imageUrl: string | null): string[] => {
+  if (!imageUrl) return [];
+  return imageUrl.split('|').filter(Boolean);
+};
+
+const formatProduct = (data: any) => {
+  const allPaths = parseImagePaths(data.image_url);
+  const primaryPath = allPaths[0] || '';
+  const additionalPaths = allPaths.slice(1);
+  return {
+    ...data,
+    image: primaryPath ? getImageUrl(primaryPath) : '',
+    images: additionalPaths.map(p => getImageUrl(p)),
+    description: data.description || '',
+    isFeatured: data.is_featured,
+    originalPrice: data.original_price,
+    colors: data.colors || [],
+    specifications: data.specifications || {}
+  };
+};
+
 export const productService = {
   // Fetch all products with caching logic
   getAll: async (forceRefresh = false) => {
@@ -18,24 +40,17 @@ export const productService = {
 
     const { data, error } = await supabase
       .from('products')
-      .select('id, name, price, original_price, image_url, category, fabric, is_featured')
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    const formatted = data.map(item => ({
-      ...item,
-      image: item.image_url ? getImageUrl(item.image_url) : '',
-      isFeatured: item.is_featured,
-      originalPrice: item.original_price,
-    }));
-
+    const formatted = data.map(formatProduct);
     productCache = formatted;
     return formatted;
   },
 
   getById: async (id: string) => {
-    // Check cache first for instant loading
     if (productCache) {
       const cached = productCache.find(p => p.id === id);
       if (cached) return cached;
@@ -48,18 +63,10 @@ export const productService = {
       .single();
 
     if (error) throw error;
-    return {
-      ...data,
-      image: data.image_url ? getImageUrl(data.image_url) : '',
-      isFeatured: data.is_featured,
-      originalPrice: data.original_price,
-      colors: data.colors || [],
-      specifications: data.specifications || {}
-    };
+    return formatProduct(data);
   },
 
   uploadImage: async (file: File) => {
-    // Compress and convert to WebP before upload to save bandwidth
     const webpFile = await convertToWebP(file, 0.8);
     const fileName = `${crypto.randomUUID()}.webp`;
 
@@ -75,56 +82,59 @@ export const productService = {
   },
 
   create: async (productData: any) => {
-    const { image, isFeatured, originalPrice, colors, ...dbData } = productData;
+    // Combine primary + additional images as pipe-separated string in image_url
+    const allImages = [productData.image, ...(productData.images || [])].filter(Boolean);
+    const insertPayload: any = {
+      name: productData.name,
+      price: productData.price,
+      category: productData.category,
+      fabric: productData.fabric,
+      stock: productData.stock,
+      status: productData.status,
+      specifications: productData.specifications || {},
+      image_url: allImages.join('|'),
+      is_featured: !!productData.isFeatured,
+      original_price: productData.originalPrice,
+      colors: productData.colors || []
+    };
+    if (productData.description) insertPayload.description = productData.description;
     const { data, error } = await supabase
       .from('products')
-      .insert([{
-        ...dbData,
-        image_url: image,
-        is_featured: !!isFeatured,
-        original_price: originalPrice,
-        colors: colors || []
-      }])
+      .insert([insertPayload])
       .select()
       .single();
 
     if (error) throw error;
-    productCache = null; // Reset cache so the new product shows up
-    return {
-      ...data,
-      image: data.image_url ? getImageUrl(data.image_url) : '',
-      isFeatured: data.is_featured,
-      originalPrice: data.original_price,
-      colors: data.colors || [],
-      specifications: data.specifications || {}
-    };
+    productCache = null;
+    return formatProduct(data);
   },
 
   update: async (id: string, productData: any) => {
-    const { image, isFeatured, originalPrice, colors, id: _id, createdAt, created_at, ...dbData } = productData;
+    const allImages = [productData.image, ...(productData.images || [])].filter(Boolean);
+    const updatePayload: any = {
+      name: productData.name,
+      price: productData.price,
+      category: productData.category,
+      fabric: productData.fabric,
+      stock: productData.stock,
+      status: productData.status,
+      specifications: productData.specifications || {},
+      image_url: allImages.join('|'),
+      is_featured: !!productData.isFeatured,
+      original_price: productData.originalPrice,
+      colors: productData.colors || []
+    };
+    if (productData.description) updatePayload.description = productData.description;
     const { data, error } = await supabase
       .from('products')
-      .update({
-        ...dbData,
-        image_url: image,
-        is_featured: !!isFeatured,
-        original_price: originalPrice,
-        colors: colors || []
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
     productCache = null;
-    return {
-      ...data,
-      image: data.image_url ? getImageUrl(data.image_url) : '',
-      isFeatured: data.is_featured,
-      originalPrice: data.original_price,
-      colors: data.colors || [],
-      specifications: data.specifications || {}
-    };
+    return formatProduct(data);
   },
 
   delete: async (id: string) => {

@@ -6,6 +6,7 @@ import { productService } from '../../services/api';
 interface Product {
   id: string;
   name: string;
+  description?: string;
   price: number;
   originalPrice?: number;
   category: string;
@@ -13,6 +14,7 @@ interface Product {
   stock: number;
   status: 'active' | 'inactive';
   image: string;
+  images?: string[];
   createdAt: string;
   specifications?: Record<string, string>;
   isFeatured?: boolean;
@@ -22,7 +24,8 @@ interface Product {
 interface ProductFormState extends Omit<Product, 'id' | 'createdAt'> {
   id?: string;
   createdAt?: string;
-  imageFile?: File | null;
+  imageFiles: File[];
+  imagePreviews: string[];
 }
 
 const ProductFormModal: React.FC<{
@@ -32,8 +35,16 @@ const ProductFormModal: React.FC<{
   isSaving: boolean;
 }> = ({ product, onClose, onSave, isSaving }) => {
   const [formData, setFormData] = useState<ProductFormState>(
-    product ? { ...product, imageFile: null } : {
+    product ? { 
+      ...product, 
+      imageFiles: [], 
+      imagePreviews: [
+        ...(product.image ? [product.image] : []),
+        ...(product.images || [])
+      ]
+    } : {
       name: '',
+      description: '',
       price: 0,
       originalPrice: 0,
       category: 'soft-silk',
@@ -41,7 +52,9 @@ const ProductFormModal: React.FC<{
       stock: 0,
       status: 'active',
       image: '',
-      imageFile: null,
+      images: [],
+      imageFiles: [],
+      imagePreviews: [],
       isFeatured: false,
       colors: [],
       specifications: {
@@ -66,14 +79,32 @@ const ProductFormModal: React.FC<{
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      const newPreviews = newFiles.map(f => URL.createObjectURL(f));
       setFormData(prev => ({ 
         ...prev, 
-        image: URL.createObjectURL(file),
-        imageFile: file 
+        imageFiles: [...prev.imageFiles, ...newFiles],
+        imagePreviews: [...prev.imagePreviews, ...newPreviews],
       }));
+      // Reset the input so selecting the same file again works
+      e.target.value = '';
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setFormData(prev => {
+      const newPreviews = [...prev.imagePreviews];
+      const newFiles = [...prev.imageFiles];
+      // Figure out how many existing (already-uploaded) images there are
+      const existingCount = prev.imagePreviews.length - prev.imageFiles.length;
+      newPreviews.splice(index, 1);
+      if (index >= existingCount) {
+        // This is a newly-added file
+        newFiles.splice(index - existingCount, 1);
+      }
+      return { ...prev, imagePreviews: newPreviews, imageFiles: newFiles };
+    });
   };
 
   // --- Color Handlers ---
@@ -150,6 +181,32 @@ const ProductFormModal: React.FC<{
             <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border rounded-md p-2 mt-1" required />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium">Description</label>
+            <textarea name="description" value={formData.description || ''} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} rows={3} placeholder="Describe the saree..." className="w-full border rounded-md p-2 mt-1 text-sm" />
+          </div>
+
+          {/* Specifications */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Specifications</label>
+            <div className="space-y-2 mb-2">
+              {formData.specifications && Object.entries(formData.specifications).map(([key, value]) => (
+                <div key={key} className="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded">
+                  <span className="font-medium">{key}:</span>
+                  <span className="flex-1">{value}</span>
+                  <button type="button" onClick={() => handleRemoveSpecification(key)} className="text-red-500 hover:text-red-700">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input type="text" value={specKey} onChange={(e) => setSpecKey(e.target.value)} placeholder="Name" className="w-1/3 border rounded p-2 text-sm" />
+              <input type="text" value={specValue} onChange={(e) => setSpecValue(e.target.value)} placeholder="Value" className="flex-1 border rounded p-2 text-sm" />
+              <button type="button" onClick={handleAddSpecification} className="bg-gray-200 px-3 rounded text-sm hover:bg-gray-300">Add</button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium">Discounted Price</label>
@@ -219,39 +276,36 @@ const ProductFormModal: React.FC<{
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium">Image</label>
-            {formData.image && (
-              <img src={formData.image} alt="Preview" className="w-24 h-24 object-cover rounded-md my-2 border" />
+            <label className="block text-sm font-medium">Images <span className="text-gray-400 font-normal">(first image = main photo)</span></label>
+            {formData.imagePreviews.length > 0 && (
+              <div className="flex flex-wrap gap-2 my-2">
+                {formData.imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative group">
+                    <img src={src} alt={`Preview ${idx + 1}`} className="w-20 h-20 object-cover rounded-md border" />
+                    {idx === 0 && (
+                      <span className="absolute top-0 left-0 bg-orange-500 text-white text-[9px] px-1 rounded-br">Main</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
             <div className="mt-1 flex items-center space-x-2">
                 <label className="cursor-pointer bg-gray-50 py-2 px-3 border border-gray-300 rounded-md text-sm hover:bg-gray-100 flex items-center">
                     <UploadCloud className="h-4 w-4 mr-2"/>
-                    Upload Image
-                    <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                    Upload Images
+                    <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
                 </label>
+                <span className="text-xs text-gray-400">{formData.imagePreviews.length} selected</span>
             </div>
           </div>
 
-          {/* Specifications */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Specifications</label>
-            <div className="space-y-2 mb-2">
-              {formData.specifications && Object.entries(formData.specifications).map(([key, value]) => (
-                <div key={key} className="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded">
-                  <span className="font-medium">{key}:</span>
-                  <span className="flex-1">{value}</span>
-                  <button type="button" onClick={() => handleRemoveSpecification(key)} className="text-red-500 hover:text-red-700">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input type="text" value={specKey} onChange={(e) => setSpecKey(e.target.value)} placeholder="Name" className="w-1/3 border rounded p-2 text-sm" />
-              <input type="text" value={specValue} onChange={(e) => setSpecValue(e.target.value)} placeholder="Value" className="flex-1 border rounded p-2 text-sm" />
-              <button type="button" onClick={handleAddSpecification} className="bg-gray-200 px-3 rounded text-sm hover:bg-gray-300">Add</button>
-            </div>
-          </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-md" disabled={isSaving}>Cancel</button>
@@ -306,23 +360,46 @@ const AdminProducts: React.FC = () => {
   const handleSaveProduct = async (formData: ProductFormState) => {
     try {
       setIsSaving(true);
-      let imageUrl = formData.image;
 
-      // 1. Upload new image if selected
-      if (formData.imageFile) {
-        imageUrl = await productService.uploadImage(formData.imageFile);
+      // How many existing (already-uploaded) images are there?
+      const existingCount = formData.imagePreviews.length - formData.imageFiles.length;
+      
+      // Extract storage paths from existing full URLs
+      const existingPaths: string[] = [];
+      for (let i = 0; i < existingCount; i++) {
+        const url = formData.imagePreviews[i];
+        if (url.startsWith('blob:')) continue; // skip blob previews
+        // Extract the storage path from full Supabase URL
+        const match = url.match(/\/product-images\/(.+)$/);
+        if (match) {
+          existingPaths.push(match[1]); // just the filename like "abc.webp"
+        } else if (!url.startsWith('http')) {
+          existingPaths.push(url); // already a path
+        } else {
+          existingPaths.push(url); // keep full URL as fallback
+        }
       }
 
-      const productPayload = { ...formData, image: imageUrl };
-      delete productPayload.imageFile; 
+      // Upload all new files
+      const uploadedPaths: string[] = [];
+      for (const file of formData.imageFiles) {
+        const path = await productService.uploadImage(file);
+        uploadedPaths.push(path);
+      }
+
+      const allPaths = [...existingPaths, ...uploadedPaths];
+      const primaryImage = allPaths[0] || '';
+      const additionalImages = allPaths.slice(1);
+
+      const productPayload: any = { ...formData, image: primaryImage, images: additionalImages };
+      delete productPayload.imageFiles;
+      delete productPayload.imagePreviews;
 
       if (formData.id) {
-        // Update
         const updated = await productService.update(formData.id, productPayload);
         setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
         toast.success('Updated successfully!');
       } else {
-        // Create
         const created = await productService.create(productPayload);
         setProducts(prev => [created, ...prev]);
         toast.success('Created successfully!');
