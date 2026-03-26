@@ -328,7 +328,7 @@ const Home: React.FC = () => {
                  <Building className="h-10 w-10 text-orange-600 mr-4" />
                  <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">About Sri Lakshira Silks</h2>
                </div>
-               <p className="text-gray-800 leading-relaxed text-lg">Founded in 2024, Sri Lakshira Silks was born from a desire to celebrate the rich heritage of Indian textiles.</p>
+               <p className="text-gray-800 leading-relaxed text-lg">Founded in 1980,Sri Lakshira Silks was born from a desire to celebrate the rich heritage of Indian textiles.</p>
                <Link to="/about" className="inline-flex items-center text-orange-600 font-bold text-lg hover:text-orange-700 transition-colors group">
                  Read Our Full Story <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1" />
                </Link>
